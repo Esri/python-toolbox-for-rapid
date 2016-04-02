@@ -9,11 +9,10 @@
  Updated:     Version 1.0, 06/02/2015 Bug fixing: uses arcpy.mapping.UpdateLayer instead of apply symbology
                 from layer
               Version 1.1, 06/24/2015 Adapted to the group layer in the map document
+              Version 1.1, 04/01/2016 deleted the lines for importing unnecessary modules
 -------------------------------------------------------------------------------'''
 import os
 import arcpy
-import numpy as NUM
-import netCDF4 as NET
 import time
 
 class UpdateDischargeMap(object):

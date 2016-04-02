@@ -11,11 +11,11 @@
                 to FGDB_TimeEnabled.lyr and SQL_TimeEnabled.lyr
               Version 1.1, 06/24/2015, add all layers into a group layer named as "AllScales",
                 which is specified in the template .mxd
+              Version 1.1, 04/01/2016, deleted unnecessary line of import netCDF4
 -------------------------------------------------------------------------------'''
 import os
 import arcpy
 import numpy as NUM
-import netCDF4 as NET
 import time
 
 class CreateDischargeMap(object):
