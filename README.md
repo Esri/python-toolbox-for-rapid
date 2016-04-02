@@ -1,6 +1,6 @@
 # RAPID Tools
 
-This repository houses a python script toolbox of tools for preprocessing inputs to RAPID and postprocessing RAPID outputs. RAPID is a river routing model named as the Routing Application for Parallel computation of Discharge. To know more information about RAPID, please visit http://rapid-hub.org/
+This repository houses a python script toolbox of tools for preprocessing inputs and postprocessing outputs of the RAPID (Routing Application for Parallel computation of Discharge) model. To know more information about RAPID, please visit its [website] (http://rapid-hub.org/).
 
 ## Getting Started
 
