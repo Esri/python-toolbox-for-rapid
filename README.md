@@ -12,7 +12,7 @@ This repository houses a python toolbox of tools for preprocessing inputs and po
 
 ## Issues
 
-Find a bug or want to request a new feature?  Please let us know by [submitting an issue](https://github.com/Esri/raster-functions/issues).
+Find a bug or want to request a new feature?  Please let us know by [submitting an issue](https://github.com/ArcGIS/RAPID_Tools/issues).
 
 ## Contributing
 
@@ -105,9 +105,15 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 
 * #### Flowline to Point
 
+  This tool writes the centroid coordinates of flowlines into a CSV file.
+
 * #### Copy Data To Server
 
+  This tool copies the discharge table and/or the drainage line features to the ArcGIS server machine from the author/publisher machine.
+
 * #### Publish Discharge Map
+
+  This tool publishes a discharge map service of stream flow visualization to an ArcGIS server.
 
 
 ## Licensing
