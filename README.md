@@ -24,32 +24,82 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 ### Preprocessing tools
 
 * #### Create Connectivity File
+  This tool creates the stream network connectivity file based on two fields in the input drainage line feature class: HydroID, and     NextDownID. It does the following:
 
-This tool creates the stream network connectivity file based on two fields in the input drainage line feature class: HydroID, and   NextDownID. It does the following:
-
-* Find the HydroID of each stream
-* Count the total number of its upstreams
-* Write the stream HydroID, the total number of its upstreams, and the HydroID(s) of all upstream(s) into the output file. The sequence of the records follows the ascending order of the stream HydroID.
+  1. Find the HydroID of each stream
+  2. Count the total number of its upstreams
+  3. Write the stream HydroID, the total number of its upstreams, and the HydroID(s) of all upstream(s) into the output file. The    sequence of the records follows the ascending order of the stream HydroID.
 
 * #### Create Subset File
 
+  This tool writes the HydroID of a subset of the stream features. The subset is created by selecting the stream features in the input   layer.
+
+
 * #### Create Muskingum Parameters File
+
+  This tool writes the values of the Muskingum parameter fields (Musk_kfac, Musk_k, and Musk_x) into individual parameter files. The    three fields can be calculated using the Calculate Muskingum Parameters tool in the RAPID_parameters.tbx. The order of the records    in all files follows the ascending order of the stream HydroID.
+
 
 * #### Create Weight Table From ECMWF/WRF-Hydro Runoff
 
+  This tool creates a table that represents the runoff contribution of the ECMWF computational grid to the catchment. It does the     following:
+
+  For ECMWF,
+
+  1. Create computational grid point feature class based on the latitude and longitude in the ECMWF runoff file
+  2. Create Thiessen polygons from the computational grid points. The Thiessen polygons represent computational grids
+
+  For WRF-Hydro,
+
+  1. Creates a raster based on the spatial resolution, extent, and projection information in the WRF geogrid file
+  2. Creates fishnet polygons and points based on the raster. The polygons and points represent the computational grids and points
+
+  Then for both,
+
+  3. Intersect the computational polygons with the input catchments
+  4. Calculate the geodesic area for each intersected polygon
+  5. Calculate the area ratio of each intersected polygon to its corresponding catchment, which is defined as the weight representing   the contribution of the computational grid to the catchment (drainage line segment)
+  6. Write the stream ID, the coordinates of the contributing computational grid, the contributing area, and the weight, etc., into   the weight table
+
+  The order of the records in the weight table follows the ascending order of the stream ID.
+
 * #### Update Weight Table
+
+  This tool updates the weight table specifically for the scenario in which the drainage line and the catchment features are not    one-to-one relationship. It does the following to the weight table:
+  
+  1. Remove the rows with stream IDs that don’t have a match in drainage lines
+  2. Add rows with stream IDs that are in drainage lines but not in catchments. In these newly added rows, the contributing area and  the weight are given values of 0. And the npoints that representing the total number of computational grids contributing to the same catchment is given the value of 1. 
 
 * #### Create Inflow File From ECMWF/WRF-Hydro Runoff
 
+  This tool creates the RAPID inflow file from ECMWF / WRF-Hydro runoff data. It does the following:
+  
+  1. Obtain a list of stream IDs based on the input drainage line feature class
+  2. For each stream feature, obtain the information of all contributing computational grids from the weight table
+  3. Calculate the runoff to each stream feature based on the computational-grid-specific runoff rates from the ECMWF / WRF-Hydro runoff data file and the contributing areas from the weight table
+  4. If the stream ID does not have any corresponding record in the weight table, its runoff is specified as 0
+  5. Write the runoff data into the inflow file in netCDF format
 
 ### Postprocessing tools
 
 * #### Create Discharge Table
 
+  This tool creates a discharge table converted from the RAPID discharge file. In the discharge table, each row contains the   information of COMID, time, and the discharge of the stream at the time step. Time is calculated as date/time format based on the start date and time input by the user and the time dimension of the stream flow variable in the RAPID discharge file. Attribute indexes are added respectively for COMID, and the time fields in the table. The discharge table is saved in a SQL Server geodatabase or a file geodatabase.
+
 * #### Create Discharge Map
 
+  This tool creates a discharge map document with time-enabled stream flow layer(s). Stream flow can be animated in the discharge map. The tool does the following:
+
+  1. If the layer information is not specified, all stream features that have records in the discharge table will be copied into the  same geodatabase where the discharge table is; if the layer information is specified, based on the information of minimum stream order for each layer, stream features are selected using the query definition of stream order >= the minimum, and then the selected stream features are copied into the same geodatabase where the discharge table is
+  2. Create a map document and add all the copied stream feature classes into the map
+  3. For each layer, add join with the discharge table based on COMID as the join field
+  4. For each layer, define the minScale and maxScale based on the user-specified information
+  5. Apply symbology on each layer based on the same template layer file (layers of the data in SQL Server geodatabase and file geodatabase have different templates)
+  6. Update the time properties for each layer based on the time-enabled template.
+ 
 * #### Update Discharge Map
 
+  This tool updates the existing map document by applying symbology from a template layer file on the layer(s) in the map document. The tool is run only if the discharge table has been updated.
 
 ### Utilities Tools
 
