@@ -9,6 +9,7 @@ This repository houses a python toolbox of tools for preprocessing inputs and po
 3. Download the toolbox and place it in a folder. Access the folder from Catalog in ArcMap and unfold the toolbox and all toolsets.You will see the following: 
 
 ![alt tag](/toolbox_screenshot.png)
+
 4. In order to use the preprocessing tools in this RAPID python toolbox, you must have the following inputs.
 
    * Drainage Line and Catchment feature classes of the watershed of your interests. To learn how to create them, please refer to the workflow of Basic Dendritic Terrain Processing in [ArcHydro](http://resources.arcgis.com/en/communities/hydro/01vn0000000s000000.htm).
