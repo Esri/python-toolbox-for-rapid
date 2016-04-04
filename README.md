@@ -4,11 +4,16 @@ This repository houses a python toolbox of tools for preprocessing inputs and po
 
 ## Getting Started
 
-1. Install [ArcGIS for Desktop 10.4](http://desktop.arcgis.com/en/arcmap/) 
+1. Install [ArcGIS for Desktop](http://desktop.arcgis.com/en/arcmap/) 
 2. If your ArcGIS for Desktop is previous to 10.2, you must install [netCDF4 python package] (https://pypi.python.org/pypi/netCDF4). An executable file for installing netCDF4-1.0.8 with python 2.7 is available [here] (http://downloads.esri.com/archydro/archydro/Setup/10.2.x/rapid/).
 3. Download the toolbox and place it in a folder. Access the folder from Catalog in ArcMap and unfold the toolbox and all toolsets. You will see the following:
 
 ![alt tag](/toolbox_screenshot.png)
+
+4. In order to use the preprocessing tools in this RAPID python toolbox, you must have the following inputs.
+
+   * Drainage Line and Catchment feature classes of the watershed of your interests. To learn how to create them, please refer to the workflow of Basic Dendritic Terrain Processing in [ArcHydro](http://resources.arcgis.com/en/communities/hydro/01vn0000000s000000.htm).
+   * [WRF-Hydro](https://www.ral.ucar.edu/projects/wrf_hydro) Geogrid file and runoff file or [ECMWF](http://www.ecmwf.int/) runoff file
 
 ## Issues
 
