@@ -24,7 +24,9 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 ### Preprocessing tools
 
 * #### Create Connectivity File
+
 This tool creates the stream network connectivity file based on two fields in the input drainage line feature class: HydroID, and   NextDownID. It does the following:
+
 * Find the HydroID of each stream
 * Count the total number of its upstreams
 * Write the stream HydroID, the total number of its upstreams, and the HydroID(s) of all upstream(s) into the output file. The sequence of the records follows the ascending order of the stream HydroID.
