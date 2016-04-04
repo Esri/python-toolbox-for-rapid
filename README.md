@@ -35,7 +35,7 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 
 * #### Create Muskingum Parameters File
 
-  This tool writes the values of the Muskingum parameter fields (Musk_kfac, Musk_k, and Musk_x) into individual parameter files. The    three fields can be calculated using the Calculate Muskingum Parameters tool in the RAPID_parameters.tbx. The order of the records    in all files follows the ascending order of the stream HydroID.
+  This tool writes the values of the Muskingum parameter fields (Musk_kfac, Musk_k, and Musk_x) into individual parameter files. The    three fields can be calculated using the Calculate Muskingum Parameters tool in the [ArcHydro toolbox](http://resources.arcgis.com/en/communities/hydro/01vn0000000s000000.htm). The order of the records    in all files follows the ascending order of the stream HydroID.
 
 * #### Create Weight Table From ECMWF/WRF-Hydro Runoff
 
