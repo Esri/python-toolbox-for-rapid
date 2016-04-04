@@ -39,7 +39,7 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 
 * #### Create Weight Table From ECMWF/WRF-Hydro Runoff
 
-  This tool creates a table that represents the runoff contribution of the ECMWF computational grid to the catchment. It does the     following:
+  This tool creates a table that represents the runoff contribution of the ECMWF/WRF-Hydro computational grid to the catchment. It requires that the input Catchment feature class has a drainage line ID field that corresponds to the HydroID of the Drainage Line feature class. If your input Catchment feature class does NOT have that field, you can use the Add DrainLnID to Catchment tool in the [ArcHydro toolbox]((http://resources.arcgis.com/en/communities/hydro/01vn0000000s000000.htm). The tool of Create Weight Table From ECMWF/WRF-Hydro Runoff does the following:
 
   For ECMWF,
 
