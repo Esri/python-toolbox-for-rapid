@@ -10,6 +10,54 @@ This repository houses a python toolbox of tools for preprocessing inputs and po
 ![alt tag](/toolbox_screenshot.png)
 
 
+## Issues
+
+Find a bug or want to request a new feature?  Please let us know by [submitting an issue](https://github.com/Esri/raster-functions/issues).
+
+## Contributing
+
+Esri welcomes contributions from anyone and everyone. Please see our [guidelines for contributing](https://github.com/esri/contributing).
+
+
+## Tools
+
+### Preprocessing tools
+
+* #### Create Connectivity File
+This tool creates the stream network connectivity file based on two fields in the input drainage line feature class: HydroID, and   NextDownID. It does the following:
+* Find the HydroID of each stream
+* Count the total number of its upstreams
+* Write the stream HydroID, the total number of its upstreams, and the HydroID(s) of all upstream(s) into the output file. The sequence of the records follows the ascending order of the stream HydroID.
+
+* #### Create Subset File
+
+* #### Create Muskingum Parameters File
+
+* #### Create Weight Table From ECMWF/WRF-Hydro Runoff
+
+* #### Update Weight Table
+
+* #### Create Inflow File From ECMWF/WRF-Hydro Runoff
+
+
+### Postprocessing tools
+
+* #### Create Discharge Table
+
+* #### Create Discharge Map
+
+* #### Update Discharge Map
+
+
+### Utilities Tools
+
+* #### Flowline to Point
+
+* #### Copy Data To Server
+
+* #### Publish Discharge Map
+
+
 ## Licensing
 Copyright 2014 Esri
 
