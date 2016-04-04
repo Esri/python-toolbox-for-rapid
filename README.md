@@ -9,7 +9,6 @@ This repository houses a python toolbox of tools for preprocessing inputs and po
 3. Download the toolbox and place it in a folder. Access the folder from Catalog in ArcMap. You will see the following:
 ![alt tag](/toolbox_screenshot.png)
 
-
 ## Issues
 
 Find a bug or want to request a new feature?  Please let us know by [submitting an issue](https://github.com/ArcGIS/RAPID_Tools/issues).
@@ -17,7 +16,6 @@ Find a bug or want to request a new feature?  Please let us know by [submitting 
 ## Contributing
 
 Esri welcomes contributions from anyone and everyone. Please see our [guidelines for contributing](https://github.com/esri/contributing).
-
 
 ## Tools
 
@@ -34,11 +32,9 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 
   This tool writes the HydroID of a subset of the stream features. The subset is created by selecting the stream features in the input   layer.
 
-
 * #### Create Muskingum Parameters File
 
   This tool writes the values of the Muskingum parameter fields (Musk_kfac, Musk_k, and Musk_x) into individual parameter files. The    three fields can be calculated using the Calculate Muskingum Parameters tool in the RAPID_parameters.tbx. The order of the records    in all files follows the ascending order of the stream HydroID.
-
 
 * #### Create Weight Table From ECMWF/WRF-Hydro Runoff
 
@@ -114,7 +110,6 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 * #### Publish Discharge Map
 
   This tool publishes a discharge map service of stream flow visualization to an ArcGIS server.
-
 
 ## Licensing
 Copyright 2014 Esri
