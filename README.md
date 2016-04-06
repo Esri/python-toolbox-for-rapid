@@ -137,5 +137,5 @@ limitations under the License.
 
 A copy of the license is available in the repository's [License.txt](/LICENSE) file.
 
-[](Esri Tags: ArcGIS Python toolbox of preprocessing and postprocessing data for a river routing model called RAPID)
+[](Esri Tags: ArcGIS Python Toolbox of Preprocessing and Postprocessing for a River Routing Model RAPID)
 [](Esri Language: Python)​
