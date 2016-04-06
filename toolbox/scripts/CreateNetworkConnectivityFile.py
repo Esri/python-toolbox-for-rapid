@@ -1,7 +1,8 @@
 '''-------------------------------------------------------------------------------
  Tool Name:   CreateNetworkConnectivityFile
  Source Name: CreateNetworkConnectivityFile.py
- Version:     ArcGIS 10.3
+ Version:     ArcGIS 10.2
+ License:     Apache 2.0
  Author:      Environmental Systems Research Institute Inc.
  Updated by:  Environmental Systems Research Institute Inc.
  Description: Generates CSV file of stream network connectivity for RAPID based on
@@ -75,8 +76,11 @@ class CreateNetworkConnectivityFile(object):
                 parameters[1].value = os.path.join(
                     dirnm, "{}.csv".format(basenm))
         else:
+            scratchWorkspace = arcpy.env.scratchWorkspace
+            if not scratchWorkspace:
+                scratchWorkspace = arcpy.env.scratchGDB
             parameters[1].value = os.path.join(
-                arcpy.env.scratchFolder, "rapid_connect.csv")
+                scratchWorkspace, "rapid_connect.csv")
         return
 
     def updateMessages(self, parameters):

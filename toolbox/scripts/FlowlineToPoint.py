@@ -1,7 +1,8 @@
 '''-------------------------------------------------------------------------------
  Tool Name:   FlowlineToPoint.py
  Source Name: FlowlineToPoint
- Version:     ArcGIS 10.3
+ Version:     ArcGIS 10.2
+ License:     Apache 2.0
  Author:      Environmental Systems Research Institute Inc.
  Updated by:  Environmental Systems Research Institute Inc.
  Description: Write the centroid coordinates of Flowlines into a CSV file for the
@@ -96,8 +97,6 @@ class FlowlineToPoint(object):
                 actual_field_names[1] = original_field_name
             elif original_field_name_lower == 'point_x':
                 actual_field_names[2] = original_field_name
-##            elif original_field_name_lower == 'point_m':
-##                actual_field_names[3] = original_field_name
             elif original_field_name_lower == 'point_z':
                 if not actual_field_names[3]:
                     actual_field_names[3] = original_field_name

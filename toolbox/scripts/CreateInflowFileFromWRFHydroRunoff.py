@@ -1,7 +1,8 @@
 '''-------------------------------------------------------------------------------
  Tool Name:   CreateInflowFileFromWRFHydroRunoff
  Source Name: CreateInflowFileFromWRFHydroRunoff.py
- Version:     ArcGIS 10.3
+ Version:     ArcGIS 10.2
+ License:     Apache 2.0
  Author:      Environmental Systems Research Institute Inc.
  Updated by:  Environmental Systems Research Institute Inc.
  Description: Creates RAPID inflow file based on the WRF_Hydro land model output
@@ -84,13 +85,6 @@ class CreateInflowFileFromWRFHydroRunoff(object):
                                  parameterType = "Required",
                                  datatype = "DEFile")
 
-##        param1 = arcpy.Parameter(name = 'in_drainage_line_features',
-##                                 displayName = 'Input Drainage Line Features',
-##                                 direction = 'Input',
-##                                 parameterType = 'Required',
-##                                 datatype = 'GPFeatureLayer')
-##        param1.filter.list = ['Polyline']
-
         param1 = arcpy.Parameter(name = "in_weight_table",
                                  displayName = "Input Weight Table",
                                  direction = "Input",
@@ -133,14 +127,6 @@ class CreateInflowFileFromWRFHydroRunoff(object):
             except Exception as e:
                 parameters[0].setErrorMessage(e.message)
 
-##        if parameters[1].altered:
-##            field_names = []
-##            fields = arcpy.ListFields(parameters[1].valueAsText)
-##            for field in fields:
-##                field_names.append(field.baseName.upper())
-##            if not ("HYDROID" in field_names and "NEXTDOWNID" in field_names):
-##                parameters[1].setErrorMessage("Input Drainage Line must contain HydroID and NextDownID.")
-
         if parameters[1].altered:
             (dirnm, basenm) = os.path.split(parameters[1].valueAsText)
             if not basenm.endswith(".csv"):
@@ -154,19 +140,12 @@ class CreateInflowFileFromWRFHydroRunoff(object):
         arcpy.env.overwriteOutput = True
 
         in_nc = parameters[0].valueAsText
-##        in_drainage_line = parameters[1].valueAsText
         in_weight_table = parameters[1].valueAsText
 
         out_nc = parameters[2].valueAsText
 
         # Validate the netcdf dataset
         self.dataValidation(in_nc, messages)
-
-##        '''Get all HydroIDs from the drainage line feature class'''
-##        hydroID = arcpy.da.FeatureClassToNumPyArray(in_drainage_line, ["HydroID"])
-##        hydroID = hydroID['HydroID']
-##        hydroID = NUM.sort(hydroID)  # sort HydroIDs in ascending order
-
 
         '''Read .csv weight table'''
         arcpy.AddMessage("Reading the weight table...")
@@ -200,10 +179,8 @@ class CreateInflowFileFromWRFHydroRunoff(object):
         # Obtain size information
         size_time = data_in_nc.variables[self.vars_oi[0]].shape[0]
         size_streamID = len(set(dict_list[self.header_wt[0]]))
-##        size_streamID = len(hydroID)
 
         # Create output inflow netcdf data
-        # data_out_nc = NET.Dataset(out_nc, "w") # by default format = "NETCDF4"
         data_out_nc = NET.Dataset(out_nc, "w", format = "NETCDF3_CLASSIC")
         dim_Time = data_out_nc.createDimension('Time', size_time)
         dim_RiverID = data_out_nc.createDimension(streamID, size_streamID)
@@ -245,15 +222,6 @@ class CreateInflowFileFromWRFHydroRunoff(object):
         len_wt = len(dict_list[self.header_wt[0]])
         pointer = 0
         for s in range(0, size_streamID):
-##            # Check if the stream reach segment has corresponding catchment
-##            # Compare the ID values since streamID of the weight table is also in ascending order
-##            '''Skip the rows in the weight table if no corresponding drainage line features'''
-##            if pointer < len_wt:
-##                while int(dict_list[self.header_wt[0]][pointer]) < int(hydroID[s]):
-##                    npoints = int(dict_list[self.header_wt[4]][pointer])
-##                    pointer += npoints
-##
-##                if pointer < len_wt and int(dict_list[self.header_wt[0]][pointer]) == int(hydroID[s]):
                     npoints = int(dict_list[self.header_wt[4]][pointer])
                     # Check if all npoints points correspond to the same streamID
                     if len(set(dict_list[self.header_wt[0]][pointer : (pointer + npoints)])) != 1:
@@ -271,10 +239,6 @@ class CreateInflowFileFromWRFHydroRunoff(object):
                     data_temp[:,s] = rnoff_stream.sum(axis = 1)
 
                     pointer += npoints
-##                else:
-##                    data_temp[:,s] = 0.0
-##            else:
-##                data_temp[:,s] = 0.0
 
 
         '''Write inflow data'''

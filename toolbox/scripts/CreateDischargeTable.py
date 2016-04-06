@@ -1,7 +1,8 @@
 '''-------------------------------------------------------------------------------
  Tool Name:   CreateDischargeTable
  Source Name: CreateDischargeTable.py
- Version:     ArcGIS 10.3
+ Version:     ArcGIS 10.2
+ License:	  Apache 2.0
  Author:      Environmental Systems Research Institute Inc.
  Updated by:  Environmental Systems Research Institute Inc.
  Description: Create a RAPID discharge table using stream ID and time from RAPID
@@ -80,9 +81,7 @@ class CreateDischargeTable(object):
         qout = data_nc.variables[self.vars_oi[1]][:]
 
 
-        #time_size = qout.shape[0]
         time_size = len(data_nc.dimensions[self.dims_oi[0]])  # to adapt to the changes of Qout dimensions
-        #comid_size = qout.shape[1]
         comid_size = len(data_nc.dimensions[self.dims_oi[1]]) # to adapt to the changes of Qout dimensions
         total_size = time_size * comid_size
 
@@ -191,10 +190,6 @@ class CreateDischargeTable(object):
         if parameters[3] is not None:
             (dirnm, basenm) = os.path.split(parameters[3].valueAsText)
             parameters[3].value = os.path.join(dirnm, "Discharge_Table")
-
-##        if parameters[4] is not None:
-##            (dirnm, basenm) = os.path.split(parameters[3].valueAsText)
-##            parameters[4].value = os.path.join(dirnm, "UniqueID_Table")
 
         return
 

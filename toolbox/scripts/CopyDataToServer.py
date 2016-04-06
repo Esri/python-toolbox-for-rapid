@@ -1,7 +1,8 @@
 '''-------------------------------------------------------------------------------
  Tool Name:   CopyDataToServer
  Source Name: CopyDataToServer.py
- Version:     ArcGIS 10.3
+ Version:     ArcGIS 10.2
+ License:	  Apache 2.0
  Author:      Environmental Systems Research Institute Inc.
  Updated by:  Environmental Systems Research Institute Inc.
  Description: Copy discharge table and/or NHDFlowLines to a workspace in the
@@ -96,12 +97,4 @@ class CopyDataToServer(object):
 
 
         return
-
-##def main():
-##    tool = CreateMapDocument()
-##    tool.execute(tool.getParameterInfo(), None)
-##
-##if __name__ == '__main__':
-##    main()
-
 

@@ -2,6 +2,7 @@
  Tool Name:   CreateMuskingumParameterFiles
  Source Name: CreateMuskingumParameterFiles.py
  Version:     ArcGIS 10.2
+ License:     Apache 2.0
  Author:      Environmental Systems Research Institute Inc.
  Updated by:  Environmental Systems Research Institute Inc.
  Description: Generates CSV file of kfac, k and x Muskingum parameter for RAPID based
@@ -70,6 +71,9 @@ class CreateMuskingumParameterFiles(object):
         """Modify the values and properties of parameters before internal
         validation is performed.  This method is called whenever a parameter
         has been changed."""
+        scratchWorkspace = arcpy.env.scratchWorkspace
+        if not scratchWorkspace:
+            scratchWorkspace = arcpy.env.scratchGDB
 
         if parameters[1].valueAsText is not None:
             (dirnm, basenm) = os.path.split(parameters[1].valueAsText)
@@ -78,7 +82,7 @@ class CreateMuskingumParameterFiles(object):
                     dirnm, "{}.csv".format(basenm))
         else:
             parameters[1].value = os.path.join(
-                arcpy.env.scratchFolder, "kfac.csv")
+                scratchWorkspace, "kfac.csv")
 
         if parameters[2].valueAsText is not None:
             (dirnm, basenm) = os.path.split(parameters[2].valueAsText)
@@ -87,7 +91,7 @@ class CreateMuskingumParameterFiles(object):
                     dirnm, "{}.csv".format(basenm))
         else:
             parameters[2].value = os.path.join(
-                arcpy.env.scratchFolder, "k.csv")
+                scratchWorkspace, "k.csv")
 
         if parameters[3].valueAsText is not None:
             (dirnm, basenm) = os.path.split(parameters[3].valueAsText)
@@ -96,7 +100,7 @@ class CreateMuskingumParameterFiles(object):
                     dirnm, "{}.csv".format(basenm))
         else:
             parameters[3].value = os.path.join(
-                arcpy.env.scratchFolder, "x.csv")
+                scratchWorkspace, "x.csv")
 
     def updateMessages(self, parameters):
         """Modify the messages created by internal validation for each tool
@@ -130,13 +134,13 @@ class CreateMuskingumParameterFiles(object):
         '''The script line below makes sure that rows in the muskingum parameter
             files are arranged in ascending order of HydroIDs of stream segements'''
         for row in sorted(arcpy.da.SearchCursor(in_drainage_line, fields)):
-			kfac=row[1]
-			k=row[2]
-			x=row[3]
+            kfac=row[1]
+            k=row[2]
+            x=row[3]
 
-			list_all_kfac.append([kfac])
-			list_all_k.append([k])
-			list_all_x.append([x])
+            list_all_kfac.append([kfac])
+            list_all_k.append([k])
+            list_all_x.append([x])
 
         with open(out_csv_file1,'wb') as csvfile:
             connectwriter = csv.writer(csvfile, dialect='excel')

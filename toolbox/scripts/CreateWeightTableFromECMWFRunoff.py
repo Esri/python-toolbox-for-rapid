@@ -1,7 +1,8 @@
 '''-------------------------------------------------------------------------------
  Tool Name:   CreateWeightTableFromECMWFRunoff
  Source Name: CreateWeightTableFromECMWFRunoff.py
- Version:     ArcGIS 10.3
+ Version:     ArcGIS 10.2
+ License:     Apache 2.0
  Author:      Environmental Systems Research Institute Inc.
  Updated by:  Environmental Systems Research Institute Inc.
  Description: Creates RAPID inflow file based on ECMWF runoff output
@@ -277,37 +278,6 @@ class CreateWeightTableFromECMWFRunoff(object):
         # Calculate the total geodesic area of each catchment based on the contributing areas of points
         fields = [streamID, 'POINT_X', 'POINT_Y', 'AREA_GEO']
         area_arr = arcpy.da.FeatureClassToNumPyArray(intersect, fields)
-##        '''The script line below makes sure that rows in the output weight table
-##            file are arranged in ascending order of streamID of stream segements'''
-##        area_arr.sort(order = str(streamID))
-##        streamID_unique_arr = NUM.unique(area_arr[streamID])
-##        area_cat_list = []
-##        count_points_list = []
-##        for ind_stream in range(0,len(streamID_unique_arr)):
-##            ind_points = area_arr[streamID]==streamID_unique_arr[ind_stream]
-##            count_points_list.append(sum(ind_points))
-##            area_cat_list.append(sum(area_arr['AREA_GEO'][ind_points]))
-##        area_cat_arr = NUM.array(area_cat_list)
-##        count_points_arr = NUM.array(count_points_list)
-##
-##        # Output the weight table
-##        arcpy.AddMessage("Writing the weight table...")
-##        with open(out_WeightTable, 'wb') as csvfile:
-##            connectwriter = csv.writer(csvfile, dialect = 'excel')
-##            title_row = [streamID, 'area_sqm', 'lon_index', 'lat_index', 'npoints', 'weight', 'Lon', 'Lat']
-##            connectwriter.writerow(title_row)
-##            for each in area_arr:
-##                streamID_each = each[streamID]
-##                area_geo_each = float(each['AREA_GEO'])
-##                area_geo_total = float(area_cat_arr[streamID_unique_arr == streamID_each])
-##                weight_each = area_geo_each/area_geo_total
-##                npoints_each = long(count_points_arr[streamID_unique_arr == streamID_each])
-##                lon_each = each['POINT_X']
-##                lat_each = each['POINT_Y']
-##                index_lon_each = int(NUM.where(lon == lon_each)[0])
-##                index_lat_each = int(NUM.where(lat == lat_each)[0])
-##                row = [streamID_each, area_geo_each, index_lon_each, index_lat_each, npoints_each, weight_each, lon_each, lat_each]
-##                connectwriter.writerow(row)
 
         arcpy.AddMessage("Writing the weight table...")
         # Get list of COMIDs in rapid_connect file so only those area included in computations

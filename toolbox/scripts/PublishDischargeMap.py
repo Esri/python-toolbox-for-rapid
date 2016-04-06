@@ -1,7 +1,8 @@
 '''-------------------------------------------------------------------------------
  Tool Name:   PublishDischargeMap
  Source Name: PublishDischargeMap.py
- Version:     ArcGIS 10.3
+ Version:     ArcGIS 10.2
+ License:     Apache 2.0
  Author:      Environmental Systems Research Institute Inc.
  Updated by:  Environmental Systems Research Institute Inc.
  Description: Create a dischage map document.
@@ -144,7 +145,6 @@ class PublishDischargeMap(object):
         doc.writexml(f)
         f.close()
 
-
         # Analyze the service definition draft
         analysis = arcpy.mapping.AnalyzeForSD(sddraft)
 
@@ -172,20 +172,5 @@ class PublishDischargeMap(object):
 
         arcpy.AddMessage(arcpy.GetMessages())
 
-##        arcpy.AddMessage("Cleaning sd")
-##        if os.path.isfile(sd):
-##            os.remove(sd)
-##        arcpy.AddMessage("Cleaning sddraft")
-##        if os.path.isfile(sddraft):
-##            os.remove(sddraft)
-
         return
-
-##def main():
-##    tool = CreateMapDocument()
-##    tool.execute(tool.getParameterInfo(), None)
-##
-##if __name__ == '__main__':
-##    main()
-
 

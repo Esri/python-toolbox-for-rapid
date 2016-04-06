@@ -1,7 +1,8 @@
 '''-------------------------------------------------------------------------------
  Tool Name:   UpdateDischargeMap
  Source Name: UpdateDischargeMap.py
- Version:     ArcGIS 10.3
+ Version:     ArcGIS 10.2
+ License:     Apache 2.0
  Author:      Environmental Systems Research Institute Inc.
  Updated by:  Environmental Systems Research Institute Inc.
  Description: Create a dischage map document.
@@ -91,12 +92,5 @@ class UpdateDischargeMap(object):
         del mxd, df, templateLayer
 
         return
-
-##def main():
-##    tool = CreateMapDocument()
-##    tool.execute(tool.getParameterInfo(), None)
-##
-##if __name__ == '__main__':
-##    main()
 
 

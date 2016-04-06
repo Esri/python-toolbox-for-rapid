@@ -2,6 +2,7 @@
  Tool Name:   CreateSubsetFile
  Source Name: CreateSubsetFile.py
  Version:     ArcGIS 10.2
+ License:     Apache 2.0
  Author:      Environmental Systems Research Institute Inc.
  Updated by:  Environmental Systems Research Institute Inc.
  Description: Generates CSV file of HydroID river network subset for RAPID based
@@ -59,8 +60,11 @@ class CreateSubsetFile(object):
                 parameters[1].value = os.path.join(
                     dirnm, "{}.csv".format(basenm))
         else:
+            scratchWorkspace = arcpy.env.scratchWorkspace
+            if not scratchWorkspace:
+                scratchWorkspace = arcpy.env.scratchGDB
             parameters[1].value = os.path.join(
-                arcpy.env.scratchFolder, "riv_bas_id.csv")
+                scratchWorkspace, "riv_bas_id.csv")
         return
 
     def updateMessages(self, parameters):
@@ -92,7 +96,7 @@ class CreateSubsetFile(object):
         '''The script line below makes sure that rows in the subset file are
            arranged in descending order of NextDownID of stream segements'''
         for row in sorted(arcpy.da.SearchCursor(in_drainage_line, fields), reverse=True):
-			list_all.append([row[1]])
+            list_all.append([row[1]])
 
         with open(out_csv_file,'wb') as csvfile:
             connectwriter = csv.writer(csvfile, dialect='excel')

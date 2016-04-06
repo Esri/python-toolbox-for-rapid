@@ -1,7 +1,8 @@
 '''-------------------------------------------------------------------------------
  Tool Name:   CreateDischargeMap
  Source Name: CreateDischargeMap.py
- Version:     ArcGIS 10.3
+ Version:     ArcGIS 10.2
+ License:     Apache 2.0
  Author:      Environmental Systems Research Institute Inc.
  Updated by:  Environmental Systems Research Institute Inc.
  Description: Create a dischage map document.
@@ -30,10 +31,6 @@ class CreateDischargeMap(object):
         self.template_mxd = os.path.join(os.path.dirname(__file__), "templates", "template_mxd.mxd")
         self.name_df = "DischargeMap"
         self.field_streamOrder = "StreamOrde"
-        # Define the minScale and maxScale for each layer and its corresponding threshold for query definition about StreamOrder
-##        self.layer_minScale_maxScale_query = {"High": [750000, None, None],
-##                                                    "Medium": [3000000, 750000, "StreamOrde >= 3"],
-##                                                    "Low":[None, 3000000, "StreamOrde >= 5"]}
         self.layer_minScale_maxScale_query = {"All": [None, None, None]}
         self.canRunInBackground = False
         self.category = "Postprocessing"
@@ -139,8 +136,6 @@ class CreateDischargeMap(object):
         out_map_document = parameters[2].valueAsText
         in_uniqueID_table = parameters[3].valueAsText
         in_layer_info = parameters[4].value
-##        in_drainage_line = r'C:\temp\TestVisualization\Experiment2.gdb\NHDFLowlineRegion12_wStreamLeve'
-##        in_flat_table = r'D:\Temp\RAPIDVisualization.gdb\Flow_map'
 
 
         ''' Obtain a list of unique IDs '''
@@ -252,12 +247,4 @@ class CreateDischargeMap(object):
 
 
         return
-
-##def main():
-##    tool = CreateMapDocument()
-##    tool.execute(tool.getParameterInfo(), None)
-##
-##if __name__ == '__main__':
-##    main()
-
 

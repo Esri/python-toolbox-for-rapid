@@ -2,6 +2,7 @@
  Tool Name:   UpdateWeightTable
  Source Name: UpdateWeightTable.py
  Version:     ArcGIS 10.2
+ License:     Apache 2.0
  Author:      Environmental Systems Research Institute Inc.
  Updated by:  Environmental Systems Research Institute Inc.
  Description: Update weight table by comparing the IDs with those in connectivity
@@ -180,16 +181,12 @@ class UpdateWeightTable(object):
                 row_count += 1
             if row_count <= 0:
                 #add rows for each flowline not in catchment
-                ##replacement_row[0] = comid  # bug line
                 new_replacement_row = [comid]
                 new_replacement_row.extend(replacement_row)
                 #FEATUREID,area_sqm,lon_index,lat_index,npoints,weight,Lon,Lat
-                ##new_weight_table.append(replacement_row) # bug line
                 new_weight_table.append(new_replacement_row)
 
 
-        #sort the file based on COMID
-        #csv_sorted = self.sort_by_column(csv_cont, 'FEATUREID')
         #print to file
         with open(out_WeightTable, 'wb') as outfile:
             writer = csv.writer(outfile)

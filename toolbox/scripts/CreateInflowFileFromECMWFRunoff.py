@@ -1,7 +1,8 @@
 '''-------------------------------------------------------------------------------
  Tool Name:   CreateInflowFileFromECMWFRunoff
  Source Name: CreateInflowFileFromECMWFRunoff.py
- Version:     ArcGIS 10.3
+ Version:     ArcGIS 10.2
+ License:     Apache 2.0
  Author:      Environmental Systems Research Institute Inc.
  Updated by:  Environmental Systems Research Institute Inc.
  Description: Creates RAPID inflow file based on the WRF_Hydro land model output
@@ -106,13 +107,6 @@ class CreateInflowFileFromECMWFRunoff(object):
                                  parameterType = "Required",
                                  datatype = "DEFile")
 
-##        param1 = arcpy.Parameter(name = 'in_drainage_line_features',
-##                                 displayName = 'Input Drainage Line Features',
-##                                 direction = 'Input',
-##                                 parameterType = 'Required',
-##                                 datatype = 'GPFeatureLayer')
-##        param1.filter.list = ['Polyline']
-
         param1 = arcpy.Parameter(name = "in_weight_table",
                                  displayName = "Input Weight Table",
                                  direction = "Input",
@@ -134,8 +128,6 @@ class CreateInflowFileFromECMWFRunoff(object):
         param3.filter.type = "ValueList"
         list_intervals = []
         param3.filter.list = list_intervals
-        #param3.value = "6hr"
-
 
         params = [param0, param1, param2, param3]
 
@@ -186,17 +178,6 @@ class CreateInflowFileFromECMWFRunoff(object):
             except:
                 parameters[0].setErrorMessage(self.errorMessages[0])
 
-##        try:
-##            if parameters[1].altered:
-##                field_names = []
-##                fields = arcpy.ListFields(parameters[1].valueAsText)
-##                for field in fields:
-##                    field_names.append(field.baseName.upper())
-##                if not ("HYDROID" in field_names and "NEXTDOWNID" in field_names):
-##                    parameters[1].setErrorMessage("Input Drainage Line must contain HydroID and NextDownID.")
-##        except Exception as e:
-##            parameters[1].setErrorMessage(e.message)
-
         try:
             if parameters[1].altered:
                 (dirnm, basenm) = os.path.split(parameters[1].valueAsText)
@@ -213,7 +194,6 @@ class CreateInflowFileFromECMWFRunoff(object):
         arcpy.env.overwriteOutput = True
 
         in_nc = parameters[0].valueAsText
-##        in_drainage_line = parameters[1].valueAsText
         in_weight_table = parameters[1].valueAsText
         out_nc = parameters[2].valueAsText
         in_time_interval = parameters[3].valueAsText
@@ -235,11 +215,6 @@ class CreateInflowFileFromECMWFRunoff(object):
         if len(time) != self.length_time[id_data]:
             messages.addErrorMessage(self.errorMessages[3])
             raise arcpy.ExecuteError
-
-##        '''Get all HydroIDs from the drainage line feature class'''
-##        hydroID = arcpy.da.FeatureClassToNumPyArray(in_drainage_line, ["HydroID"])
-##        hydroID = hydroID['HydroID']
-##        hydroID = NUM.sort(hydroID)  # sort HydroIDs in ascending order
 
         ''' Read .csv weight table '''
         arcpy.AddMessage("Reading the weight table...")
@@ -282,10 +257,8 @@ class CreateInflowFileFromECMWFRunoff(object):
                 size_time = self.length_time_opt["HighRes-6hr"]
 
         size_streamID = len(set(dict_list[self.header_wt[0]]))
-##        size_streamID = len(hydroID)
 
         # Create output inflow netcdf data
-        # data_out_nc = NET.Dataset(out_nc, "w") # by default format = "NETCDF4"
         data_out_nc = NET.Dataset(out_nc, "w", format = "NETCDF3_CLASSIC")
         dim_Time = data_out_nc.createDimension('Time', size_time)
         dim_RiverID = data_out_nc.createDimension(streamID, size_streamID)
@@ -323,15 +296,6 @@ class CreateInflowFileFromECMWFRunoff(object):
         # start compute inflow
         len_wt = len(dict_list[self.header_wt[0]])
         for s in range(0, size_streamID):
-##            # Check if the stream reach segment has corresponding catchment
-##            # Compare the ID values since streamID of the weight table is also in ascending order
-##            '''Skip the rows in the weight table if no corresponding drainage line features'''
-##            if pointer < len_wt:
-##                while (int(dict_list[self.header_wt[0]][pointer]) < int(hydroID[s])):
-##                    npoints = int(dict_list[self.header_wt[4]][pointer])
-##                    pointer += npoints
-##
-##                if pointer < len_wt and int(dict_list[self.header_wt[0]][pointer]) == int(hydroID[s]):
                     npoints = int(dict_list[self.header_wt[4]][pointer])
                     # Check if all npoints points correspond to the same streamID
                     if len(set(dict_list[self.header_wt[0]][pointer : (pointer + npoints)])) != 1:
@@ -366,8 +330,8 @@ class CreateInflowFileFromECMWFRunoff(object):
                             ro_3hr_c = NUM.subtract(data_goal[91:109,], data_goal[90:108,])
                             # concatenate all time series
                             ro_stream = NUM.concatenate([ro_3hr_a, ro_3hr_b, ro_3hr_c]) * area_sqm_npoints
-                        else: # in_time_interval == "6hr"
-                            #arcpy.AddMessage("6hr")
+                        else: 
+                            # in_time_interval is "6hr"
                             # Hour = 0 is a single data point
                             ro_6hr_a = data_goal[0:1,]
                             # calculate time series of 6 hr data from 1 hr data
@@ -382,10 +346,6 @@ class CreateInflowFileFromECMWFRunoff(object):
 
                     data_temp[:,s] = ro_stream.sum(axis = 1)
                     pointer += npoints
-##                else:
-##                    data_temp[:,s] = 0.0
-##            else:
-##                data_temp[:,s] = 0.0
 
 
         '''Write inflow data'''

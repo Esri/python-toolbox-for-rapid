@@ -1,7 +1,8 @@
 '''-------------------------------------------------------------------------------
  Tool Name:   CreateWeightTableFromWRFGeogrid
  Source Name: CreateWeightTableFromWRFGeogrid.py
- Version:     ArcGIS 10.3
+ Version:     ArcGIS 10.2
+ License:     Apache 2.0
  Author:      Environmental Systems Research Institute Inc.
  Updated by:  Environmental Systems Research Institute Inc.
  Description: Creates the computation grid polygon feature class within the buffered
@@ -277,7 +278,6 @@ class CreateWeightTableFromWRFGeogrid(object):
 
         elif map_proj == 6:
             # Cylindrical Equidistant (or Rotated Pole)
-            #arcpy.AddMessage('    Cylindrical Equidistant (or Rotated Pole) projction is not currently supported.')
             # Check units (linear unit not used in this projection).  GCS?
             Projection_String = ('PROJCS["Sphere_Equidistant_Cylindrical",'
                                  'GEOGCS["GCS_Sphere",'
@@ -336,7 +336,6 @@ class CreateWeightTableFromWRFGeogrid(object):
             or ext_envelope.YMin < ext_ras_ones.YMin \
             or ext_envelope.YMax > ext_ras_ones.YMax:
                 # Input Catchments exceed the WRF data extent
-                # raise Exception(self.errorMessages[2])
                 messages.addErrorMessage(self.errorMessages[2])
                 raise arcpy.ExecuteError
 
@@ -344,18 +343,10 @@ class CreateWeightTableFromWRFGeogrid(object):
         # Buffer the minimum bounding envelope
         envelope_b = os.path.join(scratchWorkspace, "envelope_b")
         dist_buffer = str(int(DX)*3) + " Meters"
-##        arcpy.Buffer_analysis(envelope, envelope_b, dist_buffer,
-##            "FULL", "#", "ALL", "#", "GEODESIC")
         result1 = arcpy.Buffer_analysis(envelope, envelope_b, dist_buffer, "FULL", "#", "ALL")
         envelope_b = result1.getOutput(0)
 
-##        # Clip the ones raster with the buffered catchment
-##        #ras_ones_c = os.path.join(scratchWorkspace, "ras_ones_c")
-##        ras_env_b = os.path.join(scratchWorkspace, "ras_env_b")
-##        arcpy.AddMessage("ras_ones: {0}, ras_env_b: {1}, envelope_b: {2}".format(ras_ones, ras_env_b, envelope_b))
-##        arcpy.AddMessage("ras_ones: {0}, ras_env_b: {1}, envelope_b: {2}".format(type(ras_ones), type(ras_env_b), type(envelope_b)))
-##        arcpy.Clip_management(ras_ones, "#", ras_env_b, envelope_b, "#", "#", "NO_MAINTAIN_EXTENT")
-
+		
         # Convert the buffered envelope into raster with cellsize, and snapraster the same as ras_ones
         arcpy.env.snapRaster = ras_ones
         arcpy.env.cellSize = ras_ones
@@ -397,12 +388,6 @@ class CreateWeightTableFromWRFGeogrid(object):
 
         # Add and calculate fields of CENTROID_X and CENTROD_Y for fishnet (computation grid polygon)
         arcpy.AddGeometryAttributes_management(out_CGPolygon, "CENTROID", "#", "#", "#")
-
-##        if arcpy.Exists(out_CGPolygon+"_label") and out_CGPoint is not None and (out_CGPolygon+"_label") != out_CGPoint:
-##            if not arcpy.Exists(out_CGPoint):
-##                arcpy.CopyFeatures_management(out_CGPolygon+"_label", out_CGPoint)
-##                arcpy.Delete_management(out_CGPolygon+"_label")
-
         temp_CGPoint = None
         (dirnm_out_CGPolygon, basenm_out_CGPolygon) = os.path.split(out_CGPolygon)
         if not basenm_out_CGPolygon.endswith(".shp"):
