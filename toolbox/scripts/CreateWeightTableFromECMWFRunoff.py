@@ -1,7 +1,8 @@
 '''-------------------------------------------------------------------------------
  Tool Name:   CreateWeightTableFromECMWFRunoff
  Source Name: CreateWeightTableFromECMWFRunoff.py
- Version:     ArcGIS 10.3
+ Version:     ArcGIS 10.2
+ License:     Apache 2.0
  Author:      Environmental Systems Research Institute Inc.
  Updated by:  Environmental Systems Research Institute Inc.
  Description: Creates RAPID inflow file based on ECMWF runoff output
