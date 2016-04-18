@@ -320,7 +320,7 @@ class CreateWeightTableFromECMWFRunoff(object):
             connectwriter = csv.writer(csvfile, dialect = 'excel')
             #header
             connectwriter.writerow([streamID, 'area_sqm', 'lon_index', 'lat_index', 
-                                    'npoints'])
+                                    'npoints', 'lon', 'lat'])
 
             for streamID_unique in streamID_unique_list:
                 ind_points = NUM.where(area_arr[streamID]==streamID_unique)[0]
@@ -329,7 +329,8 @@ class CreateWeightTableFromECMWFRunoff(object):
                 if num_ind_points <= 0:
                     # if point not in array, append dummy data for one point of data
                     # streamID, area_sqm, lon_index, lat_index, npoints
-                    connectwriter.writerow([streamID_unique, 0, index_lon_dummy, index_lat_dummy, 1])
+                    connectwriter.writerow([streamID_unique, 0, index_lon_dummy, index_lat_dummy,
+                                            1, lon_dummy, lat_dummy])
                 else:
                     for ind_point in ind_points:
                         area_geo_each = float(area_arr['AREA_GEO'][ind_point])
@@ -357,5 +358,5 @@ class CreateWeightTableFromECMWFRunoff(object):
                             #arcpy.AddMessage("Lat Val: %s" % lat[index_lat_each])
                             pass
                         connectwriter.writerow([streamID_unique, area_geo_each, index_lon_each, index_lat_each, 
-                                                num_ind_points])
+                                                num_ind_points, lon, lat])
         return
