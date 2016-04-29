@@ -13,7 +13,7 @@
               Version 1.1, 10/30/2014, added lon_index, lat_index in output weight table
               Version 1.1, 11/07/2014, bug fixing - enables input catchment feature class
                 with spatial reference that is not PCS_WGS_1984.
-              Version 2.0, 06/04/2015, integrated Update Weight Table (according to Alan Snow)
+              Version 2.0, 06/04/2015, integrated Update Weight Table (according to Alan Snow, US Army ERDC)
 -------------------------------------------------------------------------------'''
 import os
 import arcpy
@@ -28,8 +28,14 @@ class CreateWeightTableFromECMWFRunoff(object):
         self.description = ("Creates weight table based on the ECMWF Runoff file" +
                             " and catchment features")
         self.canRunInBackground = False
-        self.dims_oi = ['lon', 'lat', 'time']
-        self.vars_oi = ["lon", "lat", "time", "RO"]
+        self.dims_oi = [['lon', 'lat', 'time'],
+                        ['longitude', 'latitude', 'time'],
+                        ['lon', 'lat'],
+                        ['longitude', 'latitude']]
+        self.vars_oi = [["lon", "lat", "time", "RO"],
+                        ["longitude", "latitude", "time", "ro"],
+                        ["lon", "lat"],
+                        ["longitude", "latitude"]]
         self.errorMessages = ["Incorrect dimensions in the input ECMWF runoff file.",
                               "Incorrect variables in the input ECMWF runoff file."]
         self.category = "Preprocessing"
@@ -39,12 +45,12 @@ class CreateWeightTableFromECMWFRunoff(object):
         data_nc = NET.Dataset(in_nc)
 
         dims = data_nc.dimensions.keys()
-        if dims != self.dims_oi:
+        if dims not in self.dims_oi:
             messages.addErrorMessage(self.errorMessages[0])
             raise arcpy.ExecuteError
 
         vars = data_nc.variables.keys()
-        if vars != self.vars_oi:
+        if vars not in self.vars_oi:
             messages.addErrorMessage(self.errorMessages[1])
             raise arcpy.ExecuteError
 
@@ -62,20 +68,14 @@ class CreateWeightTableFromECMWFRunoff(object):
         sr = arcpy.SpatialReference(4326)
 
         # Create a list of geographic coordinate pairs
-        count_lon= len(lon0)
-        count_lat = len(lat0)
-        pointList = []
-        for i in range(0,count_lon):
-            for j in range(0, count_lat):
-                pointList.append([float(lon0[i]), float(lat0[j])])
-
         pointGeometryList = []
-        for pt in pointList:
-            point = arcpy.Point()
-            point.X = pt[0]
-            point.Y = pt[1]
-            pointGeometry = arcpy.PointGeometry(point, sr)
-            pointGeometryList.append(pointGeometry)
+        for i in range(len(lon0)):
+            for j in range(len(lat0)):
+                point = arcpy.Point()
+                point.X = float(lon0[i])
+                point.Y = float(lat0[j])
+                pointGeometry = arcpy.PointGeometry(point, sr)
+                pointGeometryList.append(pointGeometry)
 
         # Create a point feature class with longitude in Point_X, latitude in Point_Y
         out_points = os.path.join(scratchWorkspace, 'points_subset')
@@ -190,6 +190,10 @@ class CreateWeightTableFromECMWFRunoff(object):
                 parameters[0].setErrorMessage(e.message)
         return
 
+    def find_nearest(self, array, value):
+        """Gets value in array closest to the value searching for"""
+        return (NUM.abs(array-value)).argmin()
+
     def execute(self, parameters, messages):
         """The source code of the tool."""
         arcpy.env.overwriteOutput = True
@@ -242,10 +246,15 @@ class CreateWeightTableFromECMWFRunoff(object):
         data_nc = NET.Dataset(in_nc)
 
         # Obtain geographic coordinates
-        lon = (data_nc.variables['lon'][:] + 180) % 360 - 180 # convert [0, 360] to [-180, 180]
-        lat = data_nc.variables['lat'][:]
-        lon = NUM.float32(lon)
-        lat = NUM.float32(lat)
+        variables_list = data_nc.variables.keys()
+        lat_var = 'lat'
+        if 'latitude' in variables_list:
+            lat_var = 'latitude'
+        lon_var = 'lon'
+        if 'longitude' in variables_list:
+            lon_var = 'longitude'
+        lon = (data_nc.variables[lon_var][:] + 180) % 360 - 180 # convert [0, 360] to [-180, 180]
+        lat = data_nc.variables[lat_var][:]
 
         data_nc.close()
 
@@ -269,11 +278,9 @@ class CreateWeightTableFromECMWFRunoff(object):
         result5 = arcpy.Intersect_analysis([in_catchment, polygon_thiessen], intersect, 'ALL', '#', 'INPUT')
         intersect = result5.getOutput(0)
 
-
         # Calculate the geodesic area in square meters for each intersected polygon (no need to project if it's not projected yet)
         arcpy.AddMessage("Calculating geodesic areas...")
         arcpy.AddGeometryAttributes_management(intersect, 'AREA_GEODESIC', '', 'SQUARE_METERS', '')
-
 
         # Calculate the total geodesic area of each catchment based on the contributing areas of points
         fields = [streamID, 'POINT_X', 'POINT_Y', 'AREA_GEO']
@@ -284,41 +291,73 @@ class CreateWeightTableFromECMWFRunoff(object):
         connectivity_table = self.csvToList(in_rapid_connect_file)
         streamID_unique_list = [int(row[0]) for row in connectivity_table]
 
-        # Get some dummy data from the first row
+        #if point not in array append dummy data for one point of data
         lon_dummy = area_arr['POINT_X'][0]
         lat_dummy = area_arr['POINT_Y'][0]
-        index_lon_dummy = int(NUM.where(lon == lon_dummy)[0])
-        index_lat_dummy = int(NUM.where(lat == lat_dummy)[0])
+        try:
+            index_lon_dummy = int(NUM.where(lon == lon_dummy)[0])
+        except TypeError as ex:
+            #This happens when near meridian - lon_dummy ~ 0
+            #arcpy.AddMessage("GRIDID: %s" % streamID_unique)
+            #arcpy.AddMessage("Old Lon: %s" % lon_dummy)
+            index_lon_dummy = int(self.find_nearest(lon, lon_dummy))
+            #arcpy.AddMessage("Lon Index: %s" % index_lon_dummy)
+            #arcpy.AddMessage("Lon Val: %s" % lon[index_lon_dummy])
+            pass
 
-        weight_table_list = [[streamID, 'area_sqm', 'lon_index', 'lat_index', 'npoints', 'weight', 'Lon', 'Lat']]
-        for streamID_unique in streamID_unique_list:
-            ind_points = NUM.where(area_arr[streamID]==streamID_unique)[0]
-            num_ind_points = len(ind_points)
-            # Get the total area
-            area_geo_total = 0
-            for ind_point in ind_points:
-                area_geo_total += float(area_arr['AREA_GEO'][ind_point])
+        try:
+            index_lat_dummy= int(NUM.where(lat == lat_dummy)[0])
+        except TypeError as ex:
+            #This happens when near equator - lat_dummy ~ 0
+            #arcpy.AddMessage("GRIDID: %s" % streamID_unique)
+            #arcpy.AddMessage("Old Lat: %s" % lat_dummy)
+            index_lat_dummy = int(self.find_nearest(lat, lat_dummy))
+            #arcpy.AddMessage("Lat Index: %s" % index_lat_dummy)
+            #arcpy.AddMessage("Lat Val: %s" % lat[index_lat_dummy])
+            pass
 
-            if num_ind_points <= 0:
-                # if point not in array, append dummy data for one point of data
-                # streamID, area_sqm, lon_index, lat_index, npoints, weight, lon, lat
-                row_dummy = [streamID_unique, 0, index_lon_dummy, index_lat_dummy, 1, 1.0, lon_dummy, lat_dummy]
-                weight_table_list.append(row_dummy)
-            else:
-                for ind_point in ind_points:
-                    area_geo_each = float(area_arr['AREA_GEO'][ind_point])
-                    weight_each = area_geo_each/area_geo_total
-                    lon_each = area_arr['POINT_X'][ind_point]
-                    lat_each = area_arr['POINT_Y'][ind_point]
-                    index_lon_each = int(NUM.where(lon == lon_each)[0])
-                    index_lat_each = int(NUM.where(lat == lat_each)[0])
-                    row = [streamID_unique, area_geo_each, index_lon_each, index_lat_each, num_ind_points, weight_each, lon_each, lat_each]
-                    weight_table_list.append(row)
+        # Output the weight table
+        with open(out_WeightTable, 'wb') as csvfile:
+            connectwriter = csv.writer(csvfile, dialect = 'excel')
+            #header
+            connectwriter.writerow([streamID, 'area_sqm', 'lon_index', 'lat_index',
+                                    'npoints', 'lon', 'lat'])
 
-            # Output the weight table
-            with open(out_WeightTable, 'wb') as csvfile:
-                connectwriter = csv.writer(csvfile, dialect = 'excel')
-                connectwriter.writerows(weight_table_list)
+            for streamID_unique in streamID_unique_list:
+                ind_points = NUM.where(area_arr[streamID]==streamID_unique)[0]
+                num_ind_points = len(ind_points)
 
+                if num_ind_points <= 0:
+                    # if point not in array, append dummy data for one point of data
+                    # streamID, area_sqm, lon_index, lat_index, npoints
+                    connectwriter.writerow([streamID_unique, 0, index_lon_dummy, index_lat_dummy,
+                                            1, lon_dummy, lat_dummy])
+                else:
+                    for ind_point in ind_points:
+                        area_geo_each = float(area_arr['AREA_GEO'][ind_point])
+                        lon_each = area_arr['POINT_X'][ind_point]
+                        lat_each = area_arr['POINT_Y'][ind_point]
+                        try:
+                            index_lon_each = int(NUM.where(lon == lon_each)[0])
+                        except TypeError as ex:
+                            #This happens when near meridian - lon_each ~ 0
+                            index_lon_each = int(self.find_nearest(lon, lon_each))
+                            #arcpy.AddMessage("GRIDID: %s" % streamID_unique)
+                            #arcpy.AddMessage("Old Lon: %s" % lon_each)
+                            #arcpy.AddMessage("Lon Index: %s" % index_lon_each)
+                            #arcpy.AddMessage("Lon Val: %s" % lon[index_lon_each])
+                            pass
 
+                        try:
+                            index_lat_each = int(NUM.where(lat == lat_each)[0])
+                        except TypeError as ex:
+                            #This happens when near equator - lat_each ~ 0
+                            index_lat_each = int(self.find_nearest(lat, lat_each))
+                            #arcpy.AddMessage("GRIDID: %s" % streamID_unique)
+                            #arcpy.AddMessage("Old Lat: %s" % lat_each)
+                            #arcpy.AddMessage("Lat Index: %s" % index_lat_each)
+                            #arcpy.AddMessage("Lat Val: %s" % lat[index_lat_each])
+                            pass
+                        connectwriter.writerow([streamID_unique, area_geo_each, index_lon_each, index_lat_each,
+                                                num_ind_points, lon_each, lat_each])
         return

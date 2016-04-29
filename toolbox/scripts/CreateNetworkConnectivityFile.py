@@ -125,10 +125,11 @@ class CreateNetworkConnectivityFile(object):
             count_upstream = len(list_upstreamID)
             if count_upstream > max_count_Upstream:
                 max_count_Upstream = count_upstream
-            # replace the nextDownID with 0 if it equals to -1 (no next downstream)
             nextDownID = np_table[np_table[stream_id]==hydroid][next_down_id][0]
-            if nextDownID == -1:
-                nextDownID = 0
+#THIS IS REMOVED DUE TO THE FACT THAT THERE CAN BE STREAMS WITH ID OF ZERO
+#        # replace the nextDownID with 0 if it equals to -1 (no next downstream)
+#        if nextDownID == -1:
+#            nextDownID = 0
              # append the list of Stream HydroID, NextDownID, Count of Upstream ID, and  HydroID of each Upstream into a larger list
             list_all.append(NUM.concatenate([NUM.array([hydroid,nextDownID,count_upstream]),list_upstreamID]))
 
