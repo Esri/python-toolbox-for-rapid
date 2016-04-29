@@ -28,9 +28,9 @@ class CreateWeightTableFromECMWFRunoff(object):
         self.description = ("Creates weight table based on the ECMWF Runoff file" +
                             " and catchment features")
         self.canRunInBackground = False
-        self.dims_oi = [['lon', 'lat', 'time'], 
+        self.dims_oi = [['lon', 'lat', 'time'],
                         ['longitude', 'latitude', 'time'],
-                        ['lon', 'lat'], 
+                        ['lon', 'lat'],
                         ['longitude', 'latitude']]
         self.vars_oi = [["lon", "lat", "time", "RO"],
                         ["longitude", "latitude", "time", "ro"],
@@ -189,11 +189,11 @@ class CreateWeightTableFromECMWFRunoff(object):
             except Exception as e:
                 parameters[0].setErrorMessage(e.message)
         return
-    
+
     def find_nearest(self, array, value):
         """Gets value in array closest to the value searching for"""
         return (NUM.abs(array-value)).argmin()
-        
+
     def execute(self, parameters, messages):
         """The source code of the tool."""
         arcpy.env.overwriteOutput = True
@@ -304,7 +304,7 @@ class CreateWeightTableFromECMWFRunoff(object):
             #arcpy.AddMessage("Lon Index: %s" % index_lon_dummy)
             #arcpy.AddMessage("Lon Val: %s" % lon[index_lon_dummy])
             pass
-            
+
         try:
             index_lat_dummy= int(NUM.where(lat == lat_dummy)[0])
         except TypeError as ex:
@@ -320,7 +320,7 @@ class CreateWeightTableFromECMWFRunoff(object):
         with open(out_WeightTable, 'wb') as csvfile:
             connectwriter = csv.writer(csvfile, dialect = 'excel')
             #header
-            connectwriter.writerow([streamID, 'area_sqm', 'lon_index', 'lat_index', 
+            connectwriter.writerow([streamID, 'area_sqm', 'lon_index', 'lat_index',
                                     'npoints', 'lon', 'lat'])
 
             for streamID_unique in streamID_unique_list:
@@ -347,7 +347,7 @@ class CreateWeightTableFromECMWFRunoff(object):
                             #arcpy.AddMessage("Lon Index: %s" % index_lon_each)
                             #arcpy.AddMessage("Lon Val: %s" % lon[index_lon_each])
                             pass
-                            
+
                         try:
                             index_lat_each = int(NUM.where(lat == lat_each)[0])
                         except TypeError as ex:
@@ -358,6 +358,6 @@ class CreateWeightTableFromECMWFRunoff(object):
                             #arcpy.AddMessage("Lat Index: %s" % index_lat_each)
                             #arcpy.AddMessage("Lat Val: %s" % lat[index_lat_each])
                             pass
-                        connectwriter.writerow([streamID_unique, area_geo_each, index_lon_each, index_lat_each, 
-                                                num_ind_points, lon, lat])
+                        connectwriter.writerow([streamID_unique, area_geo_each, index_lon_each, index_lat_each,
+                                                num_ind_points, lon_each, lat_each])
         return
