@@ -8,6 +8,8 @@ sys.dont_write_bytecode = True
 
 from CreateNetworkConnectivityFile import CreateNetworkConnectivityFile
 from CreateMuskingumParameterFiles import CreateMuskingumParameterFiles
+from CreateMuskingumKFile import CreateMuskingumKFile
+from CreateMuskingumKfacFile import CreateMuskingumKfacFile
 from CreateSubsetFile import CreateSubsetFile
 from CreateWeightTableFromWRFGeogrid import CreateWeightTableFromWRFGeogrid
 from CreateInflowFileFromWRFHydroRunoff import CreateInflowFileFromWRFHydroRunoff
@@ -32,17 +34,19 @@ class Toolbox(object):
 
         # List of tool classes associated with this toolbox
         self.tools = [CreateNetworkConnectivityFile,
- 		      CreateMuskingumParameterFiles,
-		      CreateSubsetFile,
-              CreateWeightTableFromWRFGeogrid,
-              CreateInflowFileFromWRFHydroRunoff,
-              CreateWeightTableFromECMWFRunoff,
-              CreateInflowFileFromECMWFRunoff,
-              UpdateWeightTable,
-              CreateDischargeTable,
-              CreateDischargeMap,
-              CopyDataToServer,
-              UpdateDischargeMap,
-              PublishDischargeMap,
-              FlowlineToPoint]
+ 		       CreateMuskingumParameterFiles,
+                      CreateMuskingumKFile,
+                      CreateMuskingumKfacFile,
+		       CreateSubsetFile,
+                      CreateWeightTableFromWRFGeogrid,
+                      CreateInflowFileFromWRFHydroRunoff,
+                      CreateWeightTableFromECMWFRunoff,
+                      CreateInflowFileFromECMWFRunoff,
+                      UpdateWeightTable,
+                      CreateDischargeTable,
+                      CreateDischargeMap,
+                      CopyDataToServer,
+                      UpdateDischargeMap,
+                      PublishDischargeMap,
+                      FlowlineToPoint]
 
