@@ -20,6 +20,9 @@ from CopyDataToServer import CopyDataToServer
 from UpdateDischargeMap import UpdateDischargeMap
 from PublishDischargeMap import PublishDischargeMap
 from FlowlineToPoint import FlowlineToPoint
+from CreateWaterLevelTable import CreateWaterLevelTable
+from CreateHANDMosaicDataset import CreateHANDMosaicDataset
+from CatchmentToRaster import CatchmentToRaster
 
 
 
@@ -44,5 +47,8 @@ class Toolbox(object):
               CopyDataToServer,
               UpdateDischargeMap,
               PublishDischargeMap,
-              FlowlineToPoint]
+              FlowlineToPoint,
+              CreateWaterLevelTable,
+	      CreateHANDMosaicDataset,
+	      CatchmentToRaster]
 
