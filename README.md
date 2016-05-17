@@ -25,7 +25,7 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 
 ## Tools
 
-The tools are organized into three toolsets. One for preprocessing and preparing the input datasets for RAPID. Another for doing some postprocessing especially for visualizing the RAPID output of stream flow. The third toolset has some utilities to assist you with the workflow and sharing the visualization as web map service.
+The tools are organized into four toolsets. One for preprocessing and preparing the input datasets for RAPID. The second is for generating calibrated values for the Muksingum Paremeters. The third is for doing some postprocessing especially for visualizing the RAPID output of stream flow. The fourth toolset has some utilities to assist you with the workflow and sharing the visualization as web map service.
 
 ### Preprocessing tools
 
@@ -84,6 +84,25 @@ The tools are organized into three toolsets. One for preprocessing and preparing
   3. Calculates the runoff to each stream feature based on the computational-grid-specific runoff rates from the ECMWF / WRF-Hydro runoff data file and the contributing areas from the weight table.
   4. If a stream ID does not have a corresponding record in the weight table, specifies its runoff as 0.
   5. Writes the runoff data into the inflow file in netCDF format.
+
+### Calibration tools
+
+* #### Create Muksingum Kfac File
+
+  This tool is used to generate values of Kfac based on the flow wave celerity (Co) for the basin as well as length and slope of each stream reach.
+  
+  There are three options:
+
+  1. River Length/Co
+  2. Eta*River Length/Sqrt(River Slope)
+  3. Eta*River Length/Sqrt(River Slope) [0.05, 0.95] - this option filters out slopes outside the 5th and 95th percentiles.
+
+  Note: Eta = Average(River Length/Co of all rivers) / Average(River Length/Sqrt(River Slope) of all rivers)
+
+* #### Create Muksingum K File
+
+  Using lambda, this tool modifies each of the Kfac values by multiplying by lambda and generates the calibrated Muskgingum K file (e.g. k.csv). 
+  The value for lambda is obtained by running the calibration routine in RAPID for your simulation. 
 
 ### Postprocessing tools
 
