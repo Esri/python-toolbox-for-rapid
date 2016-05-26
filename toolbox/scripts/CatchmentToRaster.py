@@ -23,7 +23,7 @@ class CatchmentToRaster(object):
         self.description = "Convert catchment polygons to raster with stream ID \
                               as values"
         self.canRunInBackground = True
-        self.category = "Postprocessing"
+        self.category = "Postprocessing for Flood Inundation"
 
 
     def getParameterInfo(self):
