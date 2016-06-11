@@ -19,7 +19,7 @@ class CreateMuskingumKfacFile(object):
         self.description = "Generate muskingum Kfac file for RAPID \
                             based on length and slope of river reaches"
         self.canRunInBackground = False
-        self.category = "Preprocessing"
+        self.category = "Calibration"
 
     def csvToList(self, csv_file, delimiter=','):
         """
@@ -75,7 +75,8 @@ class CreateMuskingumKfacFile(object):
                                  parameterType = "Required",
                                  datatype = "Double"
                                  )
-
+        celerity.value = 1000.0/3600.0 #1km/hr in m/s
+        
         formula = arcpy.Parameter(name = "in_formula",
                                  displayName = "Muskingum Kfac Formula",
                                  direction = "Input",

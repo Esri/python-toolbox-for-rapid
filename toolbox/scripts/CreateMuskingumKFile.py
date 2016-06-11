@@ -18,7 +18,7 @@ class CreateMuskingumKFile(object):
         self.description = "Generate muskingum K file for RAPID \
                             based on kfac file and calibrated value for lamda."
         self.canRunInBackground = False
-        self.category = "Preprocessing"
+        self.category = "Calibration"
 
     def csvToList(self, csv_file, delimiter=','):
         """
@@ -39,7 +39,8 @@ class CreateMuskingumKFile(object):
                                  parameterType = "Required",
                                  datatype = "Double"
                                  )
-
+        lambda_k.value = 0.35
+        
         in_kfac_file = arcpy.Parameter(
                                     displayName = 'Input Muskingum Kfac File',
                                     name = 'in_muskingum_kfac_file',
