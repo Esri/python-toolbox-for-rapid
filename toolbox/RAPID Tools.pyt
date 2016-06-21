@@ -22,7 +22,7 @@ from CopyDataToServer import CopyDataToServer
 from UpdateDischargeMap import UpdateDischargeMap
 from PublishDischargeMap import PublishDischargeMap
 from FlowlineToPoint import FlowlineToPoint
-
+from HydroSHEDStoStreamNetwork import HydroSHEDStoStreamNetwork
 
 
 class Toolbox(object):
@@ -34,10 +34,10 @@ class Toolbox(object):
 
         # List of tool classes associated with this toolbox
         self.tools = [CreateNetworkConnectivityFile,
- 		       CreateMuskingumParameterFiles,
+                      CreateMuskingumParameterFiles,
                       CreateMuskingumKFile,
                       CreateMuskingumKfacFile,
-		       CreateSubsetFile,
+                      CreateSubsetFile,
                       CreateWeightTableFromWRFGeogrid,
                       CreateInflowFileFromWRFHydroRunoff,
                       CreateWeightTableFromECMWFRunoff,
@@ -48,5 +48,6 @@ class Toolbox(object):
                       CopyDataToServer,
                       UpdateDischargeMap,
                       PublishDischargeMap,
-                      FlowlineToPoint]
+                      FlowlineToPoint,
+                      HydroSHEDStoStreamNetwork]
 
