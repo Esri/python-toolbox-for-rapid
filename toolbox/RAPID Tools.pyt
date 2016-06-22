@@ -23,14 +23,14 @@ from UpdateDischargeMap import UpdateDischargeMap
 from PublishDischargeMap import PublishDischargeMap
 from FlowlineToPoint import FlowlineToPoint
 from HydroSHEDStoStreamNetwork import HydroSHEDStoStreamNetwork
-
+from StreamNetworktoRAPID import StreamNetworktoRAPID
 
 class Toolbox(object):
     def __init__(self):
         """Define the toolbox (the name of the toolbox is the name of the
         .pyt file)."""
-        self.label = "RAPIDTools"
-        self.alias = "RAPID Tools"
+        self.label = "RAPID Tools"
+        self.alias = "RAPIDTools"
 
         # List of tool classes associated with this toolbox
         self.tools = [CreateNetworkConnectivityFile,
@@ -49,5 +49,6 @@ class Toolbox(object):
                       UpdateDischargeMap,
                       PublishDischargeMap,
                       FlowlineToPoint,
-                      HydroSHEDStoStreamNetwork]
+                      HydroSHEDStoStreamNetwork,
+                      StreamNetworktoRAPID]
 
