@@ -131,7 +131,7 @@ class CreateWeightTableFromECMWFRunoff(object):
                                  )
         param3.parameterDependencies = ["in_catchment_features"]
         param3.filter.list = ['Short', 'Long']
-
+        param3.value = "DrainLnID"
 
         param4 = arcpy.Parameter(name="out_weight_table",
                                  displayName="Output Weight Table",
