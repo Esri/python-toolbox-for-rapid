@@ -6,6 +6,8 @@ sys.path.append(scripts_dir)
 # Do not compile .pyc files for the tool modules.
 sys.dont_write_bytecode = True
 
+from AddSPTFields import AddSPTFields
+from CopyDataToServer import CopyDataToServer
 from CreateNetworkConnectivityFile import CreateNetworkConnectivityFile
 from CreateMuskingumParameterFiles import CreateMuskingumParameterFiles
 from CreateMuskingumKFile import CreateMuskingumKFile
@@ -15,25 +17,27 @@ from CreateWeightTableFromWRFGeogrid import CreateWeightTableFromWRFGeogrid
 from CreateInflowFileFromWRFHydroRunoff import CreateInflowFileFromWRFHydroRunoff
 from CreateWeightTableFromECMWFRunoff import CreateWeightTableFromECMWFRunoff
 from CreateInflowFileFromECMWFRunoff import CreateInflowFileFromECMWFRunoff
-from UpdateWeightTable import UpdateWeightTable
+from CreateWeightTableFromLDASRunoff import CreateWeightTableFromLDASRunoff
+from CreateWeightTableFromLISRunoff import CreateWeightTableFromLISRunoff
 from CreateDischargeTable import CreateDischargeTable
 from CreateDischargeMap import CreateDischargeMap
-from CopyDataToServer import CopyDataToServer
-from UpdateDischargeMap import UpdateDischargeMap
-from PublishDischargeMap import PublishDischargeMap
 from FlowlineToPoint import FlowlineToPoint
 from HydroSHEDStoStreamNetwork import HydroSHEDStoStreamNetwork
-
+from PublishDischargeMap import PublishDischargeMap
+from UpdateWeightTable import UpdateWeightTable
+from UpdateDischargeMap import UpdateDischargeMap
 
 class Toolbox(object):
     def __init__(self):
         """Define the toolbox (the name of the toolbox is the name of the
         .pyt file)."""
-        self.label = "RAPIDTools"
-        self.alias = "RAPID Tools"
+        self.label = "RAPID Tools"
+        self.alias = "RAPIDTools"
 
         # List of tool classes associated with this toolbox
-        self.tools = [CreateNetworkConnectivityFile,
+        self.tools = [AddSPTFields,
+                      CopyDataToServer,
+                      CreateNetworkConnectivityFile,
                       CreateMuskingumParameterFiles,
                       CreateMuskingumKFile,
                       CreateMuskingumKfacFile,
@@ -42,12 +46,14 @@ class Toolbox(object):
                       CreateInflowFileFromWRFHydroRunoff,
                       CreateWeightTableFromECMWFRunoff,
                       CreateInflowFileFromECMWFRunoff,
-                      UpdateWeightTable,
+                      CreateWeightTableFromLDASRunoff,
+                      CreateWeightTableFromLISRunoff,
                       CreateDischargeTable,
                       CreateDischargeMap,
-                      CopyDataToServer,
-                      UpdateDischargeMap,
-                      PublishDischargeMap,
                       FlowlineToPoint,
-                      HydroSHEDStoStreamNetwork]
+                      HydroSHEDStoStreamNetwork,
+                      PublishDischargeMap,
+                      UpdateWeightTable,
+                      UpdateDischargeMap,
+                      ]
 
