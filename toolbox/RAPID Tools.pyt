@@ -25,6 +25,7 @@ from FlowlineToPoint import FlowlineToPoint
 from HydroSHEDStoStreamNetwork import HydroSHEDStoStreamNetwork
 from PublishDischargeMap import PublishDischargeMap
 from StreamNetworktoRAPID import StreamNetworktoRAPID
+from StreamNetworktoSPT import StreamNetworktoSPT
 from UpdateWeightTable import UpdateWeightTable
 from UpdateDischargeMap import UpdateDischargeMap
 
@@ -55,6 +56,7 @@ class Toolbox(object):
                       HydroSHEDStoStreamNetwork,
                       PublishDischargeMap,
                       StreamNetworktoRAPID,
+                      StreamNetworktoSPT,
                       UpdateWeightTable,
                       UpdateDischargeMap,
                       ]
