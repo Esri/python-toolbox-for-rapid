@@ -82,47 +82,63 @@ class CreateWeightTableFromWRFGeogrid(object):
                                  parameterType = "Required",
                                  datatype = "DEFile")
 
-        param1 = arcpy.Parameter(name = "in_network_connectivity_file",
+        param1 = arcpy.Parameter(name = "in_lat_variable",
+                                 displayName = "Latitude Variable",
+                                 direction = "Input",
+                                 parameterType = "Required",
+                                 datatype = "GPString")
+        param1.filter.list = []
+        param1.value = "XLAT_M"
+        
+        param2 = arcpy.Parameter(name = "in_lon_variable",
+                                 displayName = "Longitude Variable",
+                                 direction = "Input",
+                                 parameterType = "Required",
+                                 datatype = "GPString")
+        param2.filter.list = []
+        param2.value = "XLONG_M"
+        
+        param3 = arcpy.Parameter(name = "in_network_connectivity_file",
                                  displayName = "Input Network Connecitivity File",
                                  direction = "Input",
                                  parameterType = "Required",
                                  datatype = "DEFile")
 
-        param2 = arcpy.Parameter(name = "in_catchment_features",
+        param4 = arcpy.Parameter(name = "in_catchment_features",
                                  displayName = "Input Catchment Features",
                                  direction = "Input",
                                  parameterType = "Required",
                                  datatype = "GPFeatureLayer")
-        param2.filter.list = ['Polygon']
+        param4.filter.list = ['Polygon']
 
-        param3 = arcpy.Parameter(name = "stream_ID",
+        param5 = arcpy.Parameter(name = "stream_ID",
                                  displayName = "Stream ID",
                                  direction = "Input",
                                  parameterType = "Required",
                                  datatype = "Field"
                                  )
-        param3.parameterDependencies = ["in_catchment_features"]
-        param3.filter.list = ['Short', 'Long']
+        param5.parameterDependencies = ["in_catchment_features"]
+        param5.filter.list = ['Short', 'Long']
 
-        param4 = arcpy.Parameter(name = "out_weight_table",
+        param6 = arcpy.Parameter(name = "out_weight_table",
                                  displayName = "Output Weight Table",
                                  direction = "Output",
                                  parameterType = "Required",
                                  datatype = "DEFile")
 
-        param5 = arcpy.Parameter(name = "out_cg_polygon_feature_class",
+        param7 = arcpy.Parameter(name = "out_cg_polygon_feature_class",
                                  displayName = "Output Computational Grid Polygon Feature Class",
                                  direction = "Output",
                                  parameterType = "Optional",
                                  datatype = "DEFeatureClass")
 
-        param6 = arcpy.Parameter(name = "out_cg_point_feature_class",
+        param8 = arcpy.Parameter(name = "out_cg_point_feature_class",
                                  displayName = "Output Computational Grid Point Feature Class",
                                  direction = "Output",
                                  parameterType = "Optional",
                                  datatype = "DEFeatureClass")
 
-        params = [param0, param1, param2, param3, param4, param5, param6]
+        params = [param0, param1, param2, param3, param4, param5, param6, param7, param8]
 
         return params
 
@@ -134,17 +150,26 @@ class CreateWeightTableFromWRFGeogrid(object):
         """Modify the values and properties of parameters before internal
         validation is performed.  This method is called whenever a parameter
         has been changed."""
-        if parameters[0].valueAsText is not None and parameters[2].valueAsText is not None \
-            and parameters[3].valueAsText is not None and parameters[4].valueAsText is None:
+        if parameters[0].valueAsText is not None and parameters[4].valueAsText is not None \
+            and parameters[5].valueAsText is not None and parameters[6].valueAsText is None:
                 scratchWorkspace = arcpy.env.scratchWorkspace
                 if not scratchWorkspace:
                     scratchWorkspace = arcpy.env.scratchGDB
-                parameters[4].value = os.path.join(scratchWorkspace, "Weight_Table.csv")
+                parameters[6].value = os.path.join(scratchWorkspace, "Weight_Table.csv")
 
-        if parameters[4].valueAsText is not None:
-            (dirnm, basenm) = os.path.split(parameters[4].valueAsText)
+        if parameters[6].valueAsText is not None:
+            (dirnm, basenm) = os.path.split(parameters[6].valueAsText)
             if not basenm.endswith(".csv"):
-                parameters[4].value = os.path.join(dirnm, "{}.csv".format(basenm))
+                parameters[6].value = os.path.join(dirnm, "{}.csv".format(basenm))
+                
+        if parameters[0].altered and parameters[0].valueAsText is not None:
+            #get list of variables in the netcdf file
+            data_nc = NET.Dataset(parameters[0].valueAsText)
+            variables_list = data_nc.variables.keys()
+            data_nc.close()
+            parameters[1].filter.list = variables_list
+            parameters[2].filter.list = variables_list
+
         return
 
     def updateMessages(self, parameters):
@@ -169,12 +194,14 @@ class CreateWeightTableFromWRFGeogrid(object):
             scratchWorkspace = arcpy.env.scratchGDB
 
         in_nc = parameters[0].valueAsText
-        in_rapid_connect_file = parameters[1].valueAsText
-        in_catchment = parameters[2].valueAsText
-        streamID = parameters[3].valueAsText
-        out_WeightTable = parameters[4].valueAsText
-        out_CGPolygon = parameters[5].valueAsText
-        out_CGPoint = parameters[6].valueAsText
+        lat_var_name = parameters[1].valueAsText
+        lon_var_name = parameters[2].valueAsText
+        in_rapid_connect_file = parameters[3].valueAsText
+        in_catchment = parameters[4].valueAsText
+        streamID = parameters[5].valueAsText
+        out_WeightTable = parameters[6].valueAsText
+        out_CGPolygon = parameters[7].valueAsText
+        out_CGPoint = parameters[8].valueAsText
 
         # validate the netcdf dataset
         self.dataValidation(in_nc, messages)
@@ -401,8 +428,8 @@ class CreateWeightTableFromWRFGeogrid(object):
                 arcpy.Delete_management(temp_CGPoint)
 
         # Get latitude and longitude
-        lat_arr = data_nc.variables["XLAT_M"][:]
-        lon_arr = data_nc.variables["XLONG_M"][:]
+        lat_arr = data_nc.variables[lat_var_name][:]
+        lon_arr = data_nc.variables[lon_var_name][:]
         data_nc.close()
 
         '''Create weight table'''
@@ -442,32 +469,27 @@ class CreateWeightTableFromWRFGeogrid(object):
         with open(out_WeightTable, 'wb') as csvfile:
             connectwriter = csv.writer(csvfile, dialect = 'excel')
             #header
-            connectwriter.writerow([streamID, "area_sqm", "west_east", "south_north", "npoints", "weight", "Lon", "Lat", "x", "y"])
+            connectwriter.writerow([streamID, "area_sqm", "west_east", "south_north", "npoints", "Lon", "Lat", "x", "y"])
 
             for streamID_unique in streamID_unique_list:
                 ind_points = NUM.where(area_arr[streamID]==streamID_unique)[0]
                 num_ind_points = len(ind_points)
-                # Get the total area
-                area_geo_total = 0
-                for ind_point in ind_points:
-                    area_geo_total += float(area_arr["AREA_GEO"][ind_point])
 
                 if num_ind_points <= 0:
                     # if point not in array, append dummy data for one point of data
-                    # streamID, "area_sqm", "west_east", "south_north", "npoints", "weight", "Lon", "Lat", "x", "y"
-                    row_dummy = [streamID_unique, 0, indexX_dummy, indexY_dummy, 1, 1.0, lon_dummy, lat_dummy, centroidX_dummy, centroidY_dummy]
+                    # streamID, "area_sqm", "west_east", "south_north", "npoints", "Lon", "Lat", "x", "y"
+                    row_dummy = [streamID_unique, 0, indexX_dummy, indexY_dummy, 1, lon_dummy, lat_dummy, centroidX_dummy, centroidY_dummy]
                     connectwriter.writerow(row_dummy)
                 else:
                     for ind_point in ind_points:
                         area_geo_each = float(area_arr['AREA_GEO'][ind_point])
-                        weight_each = area_geo_each/area_geo_total
                         centroidX = area_arr["CENTROID_X"][ind_point]
                         centroidY = area_arr["CENTROID_Y"][ind_point]
                         indexX = long(round((centroidX - minX)/float(DX)))
                         indexY = long(round((centroidY - minY)/float(DY)))
                         lon = lon_arr[0, indexY, indexX]
                         lat = lat_arr[0, indexY, indexX]
-                        row = [streamID_unique, area_geo_each, indexX, indexY, num_ind_points, weight_each, lon, lat, centroidX, centroidY]
+                        row = [streamID_unique, area_geo_each, indexX, indexY, num_ind_points, lon, lat, centroidX, centroidY]
                         connectwriter.writerow(row)
 
 

@@ -12,10 +12,12 @@
               Version 1.1, 10/24/2014 Modified file and tool names
               Version 1.1, 02/19/2015 Enhancement - Added error handling for message updating of
                 input drainage line features
+              Version 1.2, 12/18/2015 Enhancement - Allow for any field to be used as the stream id field (Alan Snow, US Army ERDC)
+              Version 1.2, 12/18/2015 Enhancement - Sort by NHDPlus HYDROSEQ if available (Alan Snow, US Army ERDC)
 -------------------------------------------------------------------------------'''
-import os
 import arcpy
 import csv
+import os
 
 class CreateSubsetFile(object):
     def __init__(self):
@@ -36,6 +38,16 @@ class CreateSubsetFile(object):
                     direction = 'Input')
         in_drainage_line.filter.list = ['Polyline']
 
+        in_stream_id = arcpy.Parameter(name = "stream_ID",
+                                       displayName = "Stream ID",
+                                       direction = "Input",
+                                       parameterType = "Required",
+                                       datatype = "Field"
+                                       )
+        in_stream_id.parameterDependencies = ["in_drainage_line_features"]
+        in_stream_id.filter.list = ['Short', 'Long']
+        in_stream_id.value = "HydroID"
+        
         out_csv_file = arcpy.Parameter(
                     displayName = 'Output Subset File',
                     name = 'out_subset_file',
@@ -44,6 +56,7 @@ class CreateSubsetFile(object):
                     direction = 'Output')
 
         return [in_drainage_line,
+                in_stream_id,
 				out_csv_file]
 
     def isLicensed(self):
@@ -54,49 +67,47 @@ class CreateSubsetFile(object):
         """Modify the values and properties of parameters before internal
         validation is performed.  This method is called whenever a parameter
         has been changed."""
-        if parameters[1].valueAsText is not None:
-            (dirnm, basenm) = os.path.split(parameters[1].valueAsText)
+        if parameters[2].valueAsText is not None:
+            (dirnm, basenm) = os.path.split(parameters[2].valueAsText)
             if not basenm.endswith(".csv"):
-                parameters[1].value = os.path.join(
+                parameters[2].value = os.path.join(
                     dirnm, "{}.csv".format(basenm))
         else:
-            scratchWorkspace = arcpy.env.scratchWorkspace
-            if not scratchWorkspace:
-                scratchWorkspace = arcpy.env.scratchGDB
-            parameters[1].value = os.path.join(
-                scratchWorkspace, "riv_bas_id.csv")
+            parameters[2].value = os.path.join(
+                arcpy.env.scratchFolder, "riv_bas_id.csv")
         return
 
     def updateMessages(self, parameters):
         """Modify the messages created by internal validation for each tool
         parameter.  This method is called after internal validation."""
-        try:
-            if parameters[0].altered:
-                field_names = []
-                fields = arcpy.ListFields(parameters[0].valueAsText)
-                for field in fields:
-                    field_names.append(field.baseName.upper())
-                if not ("HYDROID" in field_names and "NEXTDOWNID" in field_names):
-                    parameters[0].setErrorMessage("Input Drainage Line must contain HydroID and NextDownID.")
-        except Exception as e:
-            parameters[0].setErrorMessage(e.message)
-
         return
-
 
     def execute(self, parameters, messages):
         """The source code of the tool."""
         in_drainage_line = parameters[0].valueAsText
-        out_csv_file = parameters[1].valueAsText
+        in_stream_id = parameters[1].valueAsText
+        out_csv_file = parameters[2].valueAsText
 
-        fields = ['NextDownID', 'HydroID']
+        query_fields = [in_stream_id, in_stream_id]
+        sort_reverse = False
+
+        fields = arcpy.ListFields(parameters[0].valueAsText)
+        upper_field_names = [field.baseName.upper() for field in fields]
+        orig_field_names = [field.name for field in fields]
+        #Sort by HYDROSEQ order if the option exists
+        if 'HYDROSEQ' in upper_field_names:
+            #with this method, smaller is downstream
+            sort_field = orig_field_names[upper_field_names.index('HYDROSEQ')]
+            query_fields = [sort_field, in_stream_id]
+            sort_reverse = True
+            arcpy.AddMessage("Sorting by %s" % sort_field)
 
         list_all = []
 
         '''The script line below makes sure that rows in the subset file are
            arranged in descending order of NextDownID of stream segements'''
-        for row in sorted(arcpy.da.SearchCursor(in_drainage_line, fields), reverse=True):
-            list_all.append([row[1]])
+        for row in sorted(arcpy.da.SearchCursor(in_drainage_line, query_fields), reverse=sort_reverse):
+			list_all.append([row[1]])
 
         with open(out_csv_file,'wb') as csvfile:
             connectwriter = csv.writer(csvfile, dialect='excel')
