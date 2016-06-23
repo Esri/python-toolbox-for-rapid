@@ -36,8 +36,6 @@ class StreamNetworktoRAPID(object):
                                          datatype="GPFeatureLayer")
         Drainage_Lines.filter.list = ['Polyline']
         
-        """
-        #THIS SECTION IS FOR WHEN THE PARAMETERS ARE SHOWN IN THE FUTURE
         Stream_ID_DrainageLine = arcpy.Parameter(name="Stream_ID_DrainageLine",
                                                  displayName="Stream ID",
                                                  direction="Input",
@@ -57,7 +55,6 @@ class StreamNetworktoRAPID(object):
         Next_Down_ID.parameterDependencies = ["Drainage_Lines"]
         Next_Down_ID.filter.list = ['Short', 'Long']
         Next_Down_ID.value = "NextDownID"                        
-        """
         
         Input_Catchment_Features = arcpy.Parameter(name="Input_Catchment_Features",
                                                    displayName="Input Catchment Features",
@@ -78,7 +75,7 @@ class StreamNetworktoRAPID(object):
         Stream_ID_Catchments.value = "DrainLnID"
         
         params = [rapid_out_folder, Drainage_Lines, 
-##                  Stream_ID_DrainageLine, Next_Down_ID,
+                  Stream_ID_DrainageLine, Next_Down_ID,
                   Input_Catchment_Features, 
                   Stream_ID_Catchments]
 
@@ -123,10 +120,10 @@ class StreamNetworktoRAPID(object):
         
         rapid_out_folder = parameters[0].valueAsText
         Drainage_Lines = parameters[1].valueAsText
-##        Stream_ID_DrainageLine = parameters[2].valueAsText
-##        Next_Down_ID = parameters[3].valueAsText
-        Input_Catchment_Features = parameters[2].valueAsText
-        Stream_ID_Catchments = parameters[3].valueAsText
+        Stream_ID_DrainageLine = parameters[2].valueAsText
+        Next_Down_ID = parameters[3].valueAsText
+        Input_Catchment_Features = parameters[4].valueAsText
+        Stream_ID_Catchments = parameters[5].valueAsText
        
        
         script_directory = os.path.dirname(__file__)
@@ -135,20 +132,19 @@ class StreamNetworktoRAPID(object):
         #Create Network Connecitivty File
         out_network_connectivity_file = os.path.join(rapid_out_folder, "rapid_connect.csv")
         arcpy.CreateNetworkConnectivityFile_RAPIDTools(Drainage_Lines, 
-## Note: Esri's version does not expose thes parameters
-##                                                       Stream_ID_DrainageLine, 
-##                                                       Next_Down_ID,
+                                                       Stream_ID_DrainageLine, 
+                                                       Next_Down_ID,
                                                        out_network_connectivity_file)
         # Create subset file
         out_subset_file = os.path.join(rapid_out_folder, "riv_bas_id.csv")        
-        arcpy.CreateSubsetFile_RAPIDTools(Drainage_Lines, out_subset_file)
+        arcpy.CreateSubsetFile_RAPIDTools(Drainage_Lines, Stream_ID_DrainageLine, out_subset_file)
         
                                                        
         #Create Muksingum Parameters
         # Process: Muksingum k
         out_muskingum_kfac_file = os.path.join(rapid_out_folder, "kfac.csv")
         arcpy.CreateMuskingumKfacFile_RAPIDTools(in_drainage_line_features=Drainage_Lines, 
-                                                 stream_ID="HydroID", 
+                                                 stream_ID=Stream_ID_DrainageLine, 
                                                  length="SLength", 
                                                  slope="Avg_Slope", 
                                                  co=1000.0/3600.0, 
@@ -160,7 +156,8 @@ class StreamNetworktoRAPID(object):
         arcpy.CreateMuskingumKFile_RAPIDTools(0.35, 
                                               out_muskingum_kfac_file, 
                                               out_muskingum_k_file)
-        # Process: Muksingum x                out_muskingum_k_file  
+                                              
+        # Process: Muksingum x  
         #Add default field to file
         arcpy.AddField_management(Drainage_Lines, "Musk_x", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
         arcpy.CalculateField_management(Drainage_Lines, "Musk_x", "0.3", "PYTHON", "")
