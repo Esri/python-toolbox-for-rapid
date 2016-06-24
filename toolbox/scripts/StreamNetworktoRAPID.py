@@ -28,13 +28,13 @@ class StreamNetworktoRAPID(object):
                                            datatype = 'DEFolder',
                                            parameterType = 'Required',
                                            direction = 'Input')
- 
-        Drainage_Lines = arcpy.Parameter(name="Drainage_Lines",
+                                            
+        input_Drainage_Lines = arcpy.Parameter(name="input_Drainage_Lines",
                                          displayName="Input Drainage Lines",
                                          direction="Input",
                                          parameterType="Required",
                                          datatype="GPFeatureLayer")
-        Drainage_Lines.filter.list = ['Polyline']
+        input_Drainage_Lines.filter.list = ['Polyline']
         
         Stream_ID_DrainageLine = arcpy.Parameter(name="Stream_ID_DrainageLine",
                                                  displayName="Stream ID",
@@ -42,7 +42,7 @@ class StreamNetworktoRAPID(object):
                                                  parameterType="Required",
                                                  datatype="Field")
                                                  
-        Stream_ID_DrainageLine.parameterDependencies = ["Drainage_Lines"]
+        Stream_ID_DrainageLine.parameterDependencies = ["input_Drainage_Lines"]
         Stream_ID_DrainageLine.filter.list = ['Short', 'Long']
         Stream_ID_DrainageLine.value = "HydroID"
         
@@ -52,17 +52,17 @@ class StreamNetworktoRAPID(object):
                                        parameterType="Required",
                                        datatype="Field")
                                        
-        Next_Down_ID.parameterDependencies = ["Drainage_Lines"]
+        Next_Down_ID.parameterDependencies = ["input_Drainage_Lines"]
         Next_Down_ID.filter.list = ['Short', 'Long']
         Next_Down_ID.value = "NextDownID"                        
         
-        Input_Catchment_Features = arcpy.Parameter(name="Input_Catchment_Features",
+        Catchment_Features = arcpy.Parameter(name="Catchment_Features",
                                                    displayName="Input Catchment Features",
                                                    direction="Input",
                                                    parameterType="Required",
                                                    datatype="GPFeatureLayer")
 
-        Input_Catchment_Features.filter.list = ['Polygon']
+        Catchment_Features.filter.list = ['Polygon']
         
         Stream_ID_Catchments = arcpy.Parameter(name="Stream_ID_Catchments",
                                                displayName="Catchments Stream ID",
@@ -70,13 +70,15 @@ class StreamNetworktoRAPID(object):
                                                parameterType="Required",
                                                datatype="Field")
                                                
-        Stream_ID_Catchments.parameterDependencies = ["Input_Catchment_Features"]
+        Stream_ID_Catchments.parameterDependencies = ["Catchment_Features"]
         Stream_ID_Catchments.filter.list = ['Short', 'Long']
         Stream_ID_Catchments.value = "DrainLnID"
         
-        params = [rapid_out_folder, Drainage_Lines, 
-                  Stream_ID_DrainageLine, Next_Down_ID,
-                  Input_Catchment_Features, 
+        params = [rapid_out_folder,
+                  input_Drainage_Lines, 
+                  Stream_ID_DrainageLine, 
+                  Next_Down_ID,
+                  Catchment_Features, 
                   Stream_ID_Catchments]
 
         return params
@@ -122,13 +124,13 @@ class StreamNetworktoRAPID(object):
         Drainage_Lines = parameters[1].valueAsText
         Stream_ID_DrainageLine = parameters[2].valueAsText
         Next_Down_ID = parameters[3].valueAsText
-        Input_Catchment_Features = parameters[4].valueAsText
+        Catchment_Features = parameters[4].valueAsText
         Stream_ID_Catchments = parameters[5].valueAsText
        
        
         script_directory = os.path.dirname(__file__)
         arcpy.ImportToolbox(os.path.join(os.path.dirname(script_directory), "RAPID Tools.pyt"))
-
+        
         #Create Network Connecitivty File
         out_network_connectivity_file = os.path.join(rapid_out_folder, "rapid_connect.csv")
         arcpy.CreateNetworkConnectivityFile_RAPIDTools(Drainage_Lines, 
@@ -177,7 +179,7 @@ class StreamNetworktoRAPID(object):
         low_resolution_weight_table = os.path.join(rapid_out_folder, "weight_ecmwf_tco639.csv")        
         arcpy.CreateWeightTableFromECMWFRunoff_RAPIDTools(low_resolution_ecmwf_grid,
                                                           out_network_connectivity_file,
-                                                          Input_Catchment_Features,
+                                                          Catchment_Features,
                                                           Stream_ID_Catchments,
                                                           low_resolution_weight_table) 
 
@@ -186,7 +188,7 @@ class StreamNetworktoRAPID(object):
         high_resolution_weight_table = os.path.join(rapid_out_folder, "weight_ecmwf_t1279.csv")        
         arcpy.CreateWeightTableFromECMWFRunoff_RAPIDTools(high_resolution_ecmwf_grid,
                                                           out_network_connectivity_file,
-                                                          Input_Catchment_Features,
+                                                          Catchment_Features,
                                                           Stream_ID_Catchments,
                                                           high_resolution_weight_table) 
         
@@ -195,7 +197,7 @@ class StreamNetworktoRAPID(object):
         era_interim_weight_table = os.path.join(rapid_out_folder, "weight_era_t511.csv")        
         arcpy.CreateWeightTableFromECMWFRunoff_RAPIDTools(era_interim_ecmwf_grid,
                                                           out_network_connectivity_file,
-                                                          Input_Catchment_Features,
+                                                          Catchment_Features,
                                                           Stream_ID_Catchments,
                                                           era_interim_weight_table) 
 
