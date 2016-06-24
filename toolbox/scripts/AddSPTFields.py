@@ -15,7 +15,7 @@ class AddSPTFields(object):
     def __init__(self):
         """Define the tool (tool name is the name of the class)."""
         self.label = "Add Streamflow Prediction Tool Fields"
-        self.description = ("Add fields to drainage line required for Streamflow Prediciton Tool")
+        self.description = ("Add fields to drainage line required for SPT")
         self.canRunInBackground = False
         self.errorMessages = ["Need both watershed & subbasin name to add ECMWF names.",
                               "Need both watershed & subbasin name to add WRF-Hydro names.",
