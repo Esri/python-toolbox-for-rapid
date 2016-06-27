@@ -7,7 +7,7 @@
  Updated by:  Andrew Dohmann
  Description: Produces 
  History:     Initial coding - 06/21/2016, version 1.0
- Updated:     Version 1.0, 06/21/2016, initial coding
+ Updated:     Version 1.0, 06/27/2016, initial coding
 -------------------------------------------------------------------------------'''
 import arcpy
 import csv
@@ -57,13 +57,13 @@ class StreamNetworktoRAPID(object):
         Next_Down_ID.value = "NextDownID"                        
         
         Catchment_Features = arcpy.Parameter(name="Catchment_Features",
-                                                   displayName="Input Catchment Features",
-                                                   direction="Input",
-                                                   parameterType="Required",
-                                                   datatype="GPFeatureLayer")
+                                             displayName="Input Catchment Features",
+                                             direction="Input",
+                                             parameterType="Required",
+                                             datatype="GPFeatureLayer")
 
         Catchment_Features.filter.list = ['Polygon']
-        
+
         Stream_ID_Catchments = arcpy.Parameter(name="Stream_ID_Catchments",
                                                displayName="Catchments Stream ID",
                                                direction="Input",
@@ -74,12 +74,21 @@ class StreamNetworktoRAPID(object):
         Stream_ID_Catchments.filter.list = ['Short', 'Long']
         Stream_ID_Catchments.value = "DrainLnID"
         
+        Input_Reservoir = arcpy.Parameter(name = 'Reservoir Input',
+                                           displayName = 'Input_Reservoirs',
+                                           datatype = 'GPFeatureLayer',
+                                           parameterType = 'Optional',
+                                           direction = 'Input')
+        Input_Reservoir.filter.list = ['Polygon']
+
         params = [rapid_out_folder,
                   input_Drainage_Lines, 
                   Stream_ID_DrainageLine, 
                   Next_Down_ID,
-                  Catchment_Features, 
-                  Stream_ID_Catchments]
+                  Catchment_Features,
+                  Stream_ID_Catchments,
+                  Input_Reservoir, 
+                  ]
 
         return params
 
@@ -126,6 +135,7 @@ class StreamNetworktoRAPID(object):
         Next_Down_ID = parameters[3].valueAsText
         Catchment_Features = parameters[4].valueAsText
         Stream_ID_Catchments = parameters[5].valueAsText
+        Input_Reservoirs = parameters[6].valueAsText
        
        
         script_directory = os.path.dirname(__file__)
@@ -159,18 +169,43 @@ class StreamNetworktoRAPID(object):
                                               out_muskingum_kfac_file, 
                                               out_muskingum_k_file)
                                               
-        # Process: Muksingum x  
-        #Add default field to file
-        arcpy.AddField_management(Drainage_Lines, "Musk_x", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
-        arcpy.CalculateField_management(Drainage_Lines, "Musk_x", "0.3", "PYTHON", "")
-
-        #generate file #may need to fix
+        # Process: Muskingum x  
+        if Input_Reservoirs:
+            #Determine if drainageline intersects rservoir
+            #create feature class where reservoirs and drainagelines intersect
+            Reservoir_Drainagelines = os.path.join("in_memory", "Reservoir_Drainagelines")
+            inFeatures = [Drainage_Lines, Input_Reservoirs]
+            arcpy.Intersect_analysis(in_features=inFeatures, out_feature_class=Reservoir_Drainagelines, join_attributes="ALL", cluster_tolerance="-1 Unknown", output_type="INPUT")
+            arcpy.AddField_management(Reservoir_Drainagelines, "Musk_x", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
+            #field "Musk_x" set to 0.0 if drainageline intersects with reservoir
+            arcpy.CalculateField_management(Reservoir_Drainagelines, "Musk_x", "0.0", "PYTHON", "")
+            arcpy.JoinField_management(Drainage_Lines, "HydroID", Reservoir_Drainagelines, "HydroID", "Musk_x")
+            #changes muckingum x to 0.3 if musk_x = null
+            cursor = arcpy.UpdateCursor(Drainage_Lines)
+            for row in cursor:
+                if row.Musk_x != 0.0:
+                    row.Musk_x = 0.3
+                    cursor.updateRow(row)
+            
+            # Delete cursor and row objects to remove locks on the data
+            del row
+            del cursor
+                    
+            # deletes Intersect with Drainage Line and Reservoir
+            arcpy.Delete_management(Reservoir_Drainagelines)
+        else:
+            #Add default field to file
+            arcpy.AddField_management(Drainage_Lines, "Musk_x", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
+            arcpy.CalculateField_management(Drainage_Lines, "Musk_x", "0.3", "PYTHON", "")
+        
+        #generate file 
         out_muskingum_x_file = os.path.join(rapid_out_folder, "x.csv")
+        ##make a list of all of the fields in the table
+        field_names = ['HydroID', 'Musk_x']
         with open(out_muskingum_x_file,'wb') as csvfile:
             connectwriter = csv.writer(csvfile, dialect='excel')
-            count_result = arcpy.GetCount_management(Drainage_Lines)
-            for row_index in xrange(int(count_result.getOutput(0))):
-                connectwriter.writerow([0.3])
+            for row in sorted(arcpy.da.SearchCursor(Drainage_Lines, field_names)):
+                connectwriter.writerow([row[1]])
 
         lsm_grid_directory = os.path.join(script_directory, "lsm_grids")
         
@@ -204,5 +239,5 @@ class StreamNetworktoRAPID(object):
         # Flowline to point
         out_point_file =  os.path.join(rapid_out_folder, "comid_lat_lon_z.csv")
         arcpy.FlowlineToPoint_RAPIDTools(Drainage_Lines, out_point_file)
-        
+
         return
