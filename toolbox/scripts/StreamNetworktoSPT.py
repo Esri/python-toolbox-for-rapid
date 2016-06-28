@@ -1,37 +1,38 @@
 '''-------------------------------------------------------------------------------
- Tool Name:   AddSPTFields.py
- Source Name: AddSPTFields
+ Tool Name:   StreamNetworktoSPT
+ Source Name: StreamNetworktoSPT.py
  Version:     ArcGIS 10.3
- Author:      Alan D. Snow, US Army ERDC
- Updated by:  
- Description: Add fields to drainage line required for Streamflow Prediciton Tool
- History:     Initial coding - 12/21/2015, version 1.0 
- Updated: 
+ License:     Apache 2.0
+ Author:      Andrew Dohmann and Alan Snow
+ Updated by:  Andrew Dohmann
+ Description: Produces 
+ History:     Initial coding - 06/23/2016, version 1.0
+ Updated:     Version 1.0, 06/23/2016, initial coding
 -------------------------------------------------------------------------------'''
 import arcpy
 import re
+import os
 
-class AddSPTFields(object):
+class StreamNetworktoSPT(object):
     def __init__(self):
         """Define the tool (tool name is the name of the class)."""
-        self.label = "Add Streamflow Prediction Tool Fields"
-        self.description = ("Add fields to drainage line required for SPT")
+        self.label = "Stream Network to SPT"
+        self.description = ("Processes stream network data into files for Streamflow Prediction Tool (SPT)")
         self.canRunInBackground = False
+        self.category = "Workflows"
         self.errorMessages = ["Need both watershed & subbasin name to add ECMWF names.",
                               "Need both watershed & subbasin name to add WRF-Hydro names.",
                               "Need ECMWF or WRF-Hydro watershed/subbasing names."]
-        self.category = "Utilities"
-
     def getParameterInfo(self):
-        """Define parameter definitions"""
-        in_drainage_line = arcpy.Parameter(
-                    name = 'in_drainage_line_features',
-                    displayName = 'Input Drainage Line Features',
-                    datatype = 'GPFeatureLayer',
-                    parameterType = 'Required',
-                    direction = 'Input')
-        in_drainage_line.filter.list = ['Polyline']
+        """Define parameter definitions""" 
 
+        input_Drainage_Lines = arcpy.Parameter(name="input_Drainage_Lines",
+                                         displayName="Input Drainage Lines",
+                                         direction="Input",
+                                         parameterType="Required",
+                                         datatype="GPFeatureLayer")
+        input_Drainage_Lines.filter.list = ['Polyline']
+        
         param1 = arcpy.Parameter(name = "ECMWF_Watershed_Name",
                                  displayName = "ECMWF Watershed Name",
                                  direction = "Input",
@@ -56,17 +57,32 @@ class AddSPTFields(object):
                                  parameterType = "Optional",
                                  datatype = "Field"
                                  )
+                        
+        Catchment_Features = arcpy.Parameter(name="Catchment_Features",
+                                     displayName="Input Catchment Features",
+                                     direction="Input",
+                                     parameterType="Required",
+                                     datatype="GPFeatureLayer")
+        Catchment_Features.filter.list = ['Polygon']
+        
+        SPT_out_folder = arcpy.Parameter(name = 'SPT_out_folder',
+                                           displayName = 'Folder for SPT Shapefiles',
+                                           datatype = 'DEFolder',
+                                           parameterType = 'Required',
+                                           direction = 'Input')
 
-        params = [in_drainage_line, param1, param2, param3, param4]
+        params = [input_Drainage_Lines, param1, param2, param3, param4,
+                  Catchment_Features, SPT_out_folder]
 
         return params
 
     def isLicensed(self):
         """Set whether tool is licensed to execute."""
         return True
-
+        
     def format_name(self, string):
         """Cleans string for the streamflow prediction tool input"""
+        
         if string:
             formatted_string = string.strip().replace(" ", "_").lower()
             formatted_string = re.sub(r'[^a-zA-Z0-9_-]', '', formatted_string)
@@ -112,31 +128,34 @@ class AddSPTFields(object):
 
     def execute(self, parameters, messages):
         """The source code of the tool."""
+        
         arcpy.env.overwriteOutput = True
-
-        # Script arguments
-        drainage_line = parameters[0].valueAsText
+        
+        Drainage_Lines = parameters[0].valueAsText
         ecmwf_watershed_name = parameters[1].valueAsText
         ecmwf_subbasin_name = parameters[2].valueAsText
         wrf_hydro_watershed_name = parameters[3].valueAsText
         wrf_hydro_aubbasin_name = parameters[4].valueAsText
-
-        #add ECMWF fields if necessary
-        if ecmwf_watershed_name and ecmwf_subbasin_name:
-            arcpy.AddMessage("Adding ECMWF watershed field with value {0}".format(ecmwf_watershed_name))
-            arcpy.AddField_management(drainage_line, "watershed", "TEXT")
-            arcpy.CalculateField_management(drainage_line, "watershed", "'{0}'".format(ecmwf_watershed_name), "PYTHON")
-            arcpy.AddMessage("Adding ECMWF subbasin field with value {0}".format(ecmwf_subbasin_name))
-            arcpy.AddField_management(drainage_line, "subbasin", "TEXT")
-            arcpy.CalculateField_management(drainage_line, "subbasin", "'{0}'".format(ecmwf_subbasin_name), "PYTHON")
+        Catchment_Features = parameters[5].valueAsText
+        SPT_out_folder = parameters[6].valueAsText
+       
+        script_directory = os.path.dirname(__file__)
+        arcpy.ImportToolbox(os.path.join(os.path.dirname(script_directory), "RAPID Tools.pyt"))
         
-        #add WRF-Hydro fields if necessary
-        if wrf_hydro_watershed_name and wrf_hydro_aubbasin_name:
-            arcpy.AddMessage("Adding WRF-Hydro watershed field with value {0}".format(wrf_hydro_watershed_name))
-            arcpy.AddField_management(drainage_line, "wwatershed", "TEXT")
-            arcpy.CalculateField_management(drainage_line, "wwatershed", "'{0}'".format(wrf_hydro_watershed_name), "PYTHON")
-            arcpy.AddMessage("Adding WRF-Hydro subbasin field with value {0}".format(wrf_hydro_aubbasin_name))
-            arcpy.AddField_management(drainage_line, "wsubbasin", "TEXT")
-            arcpy.CalculateField_management(drainage_line, "wsubbasin", "'{0}'".format(wrf_hydro_aubbasin_name), "PYTHON")
+        #Add watershed names to drainagelines
+        arcpy.AddSPTFields_RAPIDTools(Drainage_Lines,
+                                      ecmwf_watershed_name, 
+                                      ecmwf_subbasin_name,
+                                      wrf_hydro_watershed_name,
+                                      wrf_hydro_aubbasin_name)
+                                             
+        #Dissolve Catchments
+        Dissolved_Catchments = os.path.join(os.path.dirname(Catchment_Features), "WatershedBoundary")
+        #Input_Catchment_Features to Dissolved_Catchments
+        arcpy.Dissolve_management(Catchment_Features, Dissolved_Catchments) 
+        
+        #export shapefiles to new folder
+        inputs = [Dissolved_Catchments, Drainage_Lines]
+        arcpy.FeatureClassToShapefile_conversion(inputs, SPT_out_folder)
 
         return

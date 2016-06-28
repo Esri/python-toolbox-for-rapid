@@ -85,26 +85,28 @@ class FlowlineToPoint(object):
         arcpy.AddMessage("Writing output to csv ...")
         original_field_names = [f.name for f in arcpy.ListFields(Intermediate_Feature_Points)]
         #COMID,Lat,Lon,Elev_m
-        actual_field_names = ["", "", "", ""]
+        needed_field_names = [["hydroid","comid"], "point_y", "point_x", "point_z"]
+        actual_field_names = ["", "", ""]
         for original_field_name in original_field_names:
             original_field_name_lower = original_field_name.lower()
-            if original_field_name_lower == 'comid':
+            if original_field_name_lower == needed_field_names[0][0] \
+            or original_field_name_lower == needed_field_names[0][1]:
                 actual_field_names[0] = original_field_name
-            elif original_field_name_lower == 'hydroid':
-                if not actual_field_names[0]:
-                    actual_field_names[0] = original_field_name
-            elif original_field_name_lower == 'point_y':
+            elif original_field_name_lower == needed_field_names[1]:
                 actual_field_names[1] = original_field_name
-            elif original_field_name_lower == 'point_x':
+            elif original_field_name_lower == needed_field_names[2]:
                 actual_field_names[2] = original_field_name
-            elif original_field_name_lower == 'point_z':
-                if not actual_field_names[3]:
-                    actual_field_names[3] = original_field_name
-
+            elif original_field_name_lower == needed_field_names[3]:
+                actual_field_names.append(original_field_name)
+        z_elev_found = True
+        if len(actual_field_names) <=3:
+            z_elev_found = False
+            arcpy.AddMessage("POINT_Z field not found. Replacing with zero.")
+            
         #check to make sure all fields exist
-        for field_name in actual_field_names:
+        for field_index, field_name in enumerate(actual_field_names):
             if field_name == "":
-                messages.addErrorMessage("Field name %s not found." % field_name)
+                messages.addErrorMessage("Field name {0} not found.".format(needed_field_names[field_index]))
                 raise arcpy.ExecuteError
 
         #print valid field names to table
@@ -112,11 +114,14 @@ class FlowlineToPoint(object):
             writer = csv.writer(outfile)
             writer.writerow(['COMID','Lat','Lon','Elev_m'])
             with arcpy.da.SearchCursor(Intermediate_Feature_Points, actual_field_names) as cursor:
+                z_elev = 0
                 for row in cursor:
                     #make sure all values are valid
                     np_row = array(row)
                     np_row[isnan(np_row)] = 0
-                    writer.writerow([int(row[0]), row[1], row[2], row[3]])
+                    if z_elev_found:
+                        z_elev = row[3]
+                    writer.writerow([int(row[0]), row[1], row[2], z_elev])
 
         arcpy.AddMessage("NaN value(s) replaced with zero. Please check output for accuracy.")
 

@@ -3,7 +3,7 @@
  Source Name: HydroSHEDStoStreamNetwork.py
  Version:     ArcGIS 10.3
  License:     Apache 2.0
- Author:      Andrew Dohmann
+ Author:      Andrew Dohmann and Alan Snow
  Updated by:  Andrew Dohmann
  Description: Produces 
  History:     Initial coding - 06/17/2016, version 1.0
@@ -101,6 +101,12 @@ class HydroSHEDStoStreamNetwork(object):
 
     def execute(self, parameters, messages):
         """The source code of the tool."""
+        #Extensions
+        if arcpy.CheckExtension("3D") == "Available":
+            arcpy.CheckOutExtension("3D")
+        else:
+            arcpy.ExcecuteError("ERROR: The 3D Analyst extension is required to run this tool.")
+
         arcpy.env.overwriteOutput = True
         
         File_GDB_Name = parameters[0].valueAsText
@@ -189,6 +195,12 @@ class HydroSHEDStoStreamNetwork(object):
         arcpy.CalculateField_management(Output_Catchment, "DrainLnID", "[HydroID_1]", "VB", "")
         arcpy.DeleteField_management(Output_Catchment, "HydroID_1")
         
+        # Process: Delete rows that do not have a drainage line associated with it
+        up_curs = arcpy.UpdateCursor(Output_Catchment,"{0} IS NULL".format("DrainLnID"))  
+        for row in up_curs:  
+            if not row.DrainLnID:  
+                up_curs.deleteRow(row)
+
         # Process: Adjoint Catchment Processing
 ##        Output_Adjoint_Catchment = os.path.join(Path_to_GDB_dataset, "AdjointCatchment")        
 ##        ArcHydroTools.AdjointCatchment(Output_DrainageLine, Output_Catchment, Output_Adjoint_Catchment)
@@ -206,5 +218,4 @@ class HydroSHEDStoStreamNetwork(object):
         arcpy.Project_management(Output_Projected_DrainageLine, Output_DrainageLine, Coordinate_System)
         arcpy.Delete_management(Output_Projected_DrainageLine)
         arcpy.Delete_management(Watershed_Buffer)
-        
         return
