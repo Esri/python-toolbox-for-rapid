@@ -170,42 +170,7 @@ class StreamNetworktoRAPID(object):
                                               out_muskingum_k_file)
                                               
         # Process: Muskingum x  
-        if Input_Reservoirs:
-            #Determine if drainageline intersects rservoir
-            #create feature class where reservoirs and drainagelines intersect
-            Reservoir_Drainagelines = os.path.join("in_memory", "Reservoir_Drainagelines")
-            inFeatures = [Drainage_Lines, Input_Reservoirs]
-            arcpy.Intersect_analysis(in_features=inFeatures, out_feature_class=Reservoir_Drainagelines, join_attributes="ALL", cluster_tolerance="-1 Unknown", output_type="INPUT")
-            arcpy.AddField_management(Reservoir_Drainagelines, "Musk_x", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
-            #field "Musk_x" set to 0.0 if drainageline intersects with reservoir
-            arcpy.CalculateField_management(Reservoir_Drainagelines, "Musk_x", "0.0", "PYTHON", "")
-            arcpy.JoinField_management(Drainage_Lines, "HydroID", Reservoir_Drainagelines, "HydroID", "Musk_x")
-            #changes muckingum x to 0.3 if musk_x = null
-            cursor = arcpy.UpdateCursor(Drainage_Lines)
-            for row in cursor:
-                if row.Musk_x != 0.0:
-                    row.Musk_x = 0.3
-                    cursor.updateRow(row)
-            
-            # Delete cursor and row objects to remove locks on the data
-            del row
-            del cursor
-                    
-            # deletes Intersect with Drainage Line and Reservoir
-            arcpy.Delete_management(Reservoir_Drainagelines)
-        else:
-            #Add default field to file
-            arcpy.AddField_management(Drainage_Lines, "Musk_x", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
-            arcpy.CalculateField_management(Drainage_Lines, "Musk_x", "0.3", "PYTHON", "")
-        
-        #generate file 
-        out_muskingum_x_file = os.path.join(rapid_out_folder, "x.csv")
-        ##make a list of all of the fields in the table
-        field_names = ['HydroID', 'Musk_x']
-        with open(out_muskingum_x_file,'wb') as csvfile:
-            connectwriter = csv.writer(csvfile, dialect='excel')
-            for row in sorted(arcpy.da.SearchCursor(Drainage_Lines, field_names)):
-                connectwriter.writerow([row[1]])
+        arcpy.CreateMuskingumXfile_RAPIDTools(rapid_out_folder, Drainage_Lines, "0.3", Input_Reservoirs)
 
         lsm_grid_directory = os.path.join(script_directory, "lsm_grids")
         
