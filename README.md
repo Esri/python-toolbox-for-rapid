@@ -10,10 +10,22 @@ This repository houses a Python toolbox of tools for preprocessing inputs and po
 
 ![alt tag](/toolbox_screenshot.png)
 
-* In order to use the Preprocessing tools, you will need to have the following inputs available:
+* To use the Preprocessing tools, you need the following inputs ready:
 
    * Drainage Line and Catchment feature classes for the watersheds of interests. To learn about how to create them, please refer to the workflow of Basic Dendritic Terrain Processing with [ArcHydro](http://resources.arcgis.com/en/communities/hydro/01vn0000000s000000.htm) tools.
    * For [WRF-Hydro](https://www.ral.ucar.edu/projects/wrf_hydro), you will need both its geogrid file and runoff file; for [ECMWF](http://www.ecmwf.int/), you will need only the runoff file.
+
+* To use the Postprocessing tools for stream flow mapping, you need the following inputs ready:
+
+   * Drainage line feature class 
+   * RAPID discharge file
+
+* To use the Postprocessing tools for flood inundation mapping, you need the following inputs ready:
+
+   * Catchment polygon feature class or Catchment raster with stream ID as pixel values
+   * RAPID discharge file
+   * Rating curves
+   * Height Above the Nearest Drainage (HAND) raster
 
 ## Issues
 
@@ -105,6 +117,20 @@ The tools are organized into three toolsets. One for preprocessing and preparing
 * #### Update Discharge Map
 
   This tool updates the existing map document by applying symbology from a template layer file to the layer(s) in the map document. The tool is run only if the discharge table has been updated.
+
+### Postprocessing tools for flood inundation
+
+* #### Create HAND Mosaic Dataset
+
+  This tool creates a mosaic dataset and add HAND raster to the mosaic dataset for the same number of times as the number of time steps as in the RAPID discharge file.
+
+* #### Create Water Level Table
+
+  This tool creates a flat table of stream ID (COMID), discharge in cubic meter per second (Q_cumes), discharge in cubic feet per second (Q_cfs), flood stage height in meter (H_m), flood stage height in feet (H_ft), and time (TimeValue)
+
+* #### Convert Catchment Polygons to Raster
+
+  This tool converts catchmen polygons to raster using the same extent, cell size and coordinate system as the HAND raster.
 
 ### Utilities Tools
 
