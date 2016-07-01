@@ -7,6 +7,7 @@ sys.path.append(scripts_dir)
 sys.dont_write_bytecode = True
 
 from AddSPTFields import AddSPTFields
+from AutomaticRAPIDfileGenerator import AutomaticRAPIDfileGenerator
 from CopyDataToServer import CopyDataToServer
 from CreateNetworkConnectivityFile import CreateNetworkConnectivityFile
 from CreateMuskingumParameterFiles import CreateMuskingumParameterFiles
@@ -21,6 +22,7 @@ from CreateWeightTableFromLDASRunoff import CreateWeightTableFromLDASRunoff
 from CreateWeightTableFromLISRunoff import CreateWeightTableFromLISRunoff
 from CreateDischargeTable import CreateDischargeTable
 from CreateDischargeMap import CreateDischargeMap
+from GatherHydroSHEDSdata import GatherHydroSHEDSdata
 from FlowlineToPoint import FlowlineToPoint
 from HydroSHEDStoStreamNetwork import HydroSHEDStoStreamNetwork
 from CreateMuskingumXfile import CreateMuskingumXfile
@@ -39,6 +41,7 @@ class Toolbox(object):
 
         # List of tool classes associated with this toolbox
         self.tools = [AddSPTFields,
+                      AutomaticRAPIDfileGenerator, 
                       CopyDataToServer,
                       CreateNetworkConnectivityFile,
                       CreateMuskingumParameterFiles,
@@ -54,6 +57,7 @@ class Toolbox(object):
                       CreateWeightTableFromLISRunoff,
                       CreateDischargeTable,
                       CreateDischargeMap,
+                      GatherHydroSHEDSdata, 
                       FlowlineToPoint,
                       HydroSHEDStoStreamNetwork,
                       PublishDischargeMap,
