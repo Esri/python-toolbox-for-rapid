@@ -71,12 +71,12 @@ class CatchmentToRaster(object):
         """Modify the values and properties of parameters before internal
         validation is performed.  This method is called whenever a parameter
         has been changed."""
-        if parameters[2].altered:
-            try:
-                workspace = arcpy.Describe(parameters[2]).path
-                parameters[3].value = os.path.join(workspace, "catchment_ras")
-            except AttributeError:
-                parameters[2].setErrorMessage("{0} does not exist".format(parameters[2]))
+        # if parameters[2].altered:
+        #     try:
+        #         workspace = arcpy.Describe(parameters[2]).path
+        #         parameters[3].value = os.path.join(workspace, "catchment_ras")
+        #     except AttributeError:
+        #         parameters[2].setErrorMessage("{0} does not exist".format(parameters[2]))
 
         return
 

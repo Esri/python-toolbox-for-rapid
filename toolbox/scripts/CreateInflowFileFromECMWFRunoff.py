@@ -220,7 +220,7 @@ class CreateInflowFileFromECMWFRunoff(object):
         arcpy.AddMessage("Reading the weight table...")
         dict_list = {self.header_wt[0]:[], self.header_wt[1]:[], self.header_wt[2]:[],
                      self.header_wt[3]:[], self.header_wt[4]:[], self.header_wt[5]:[],
-                     self.header_wt[6]:[], self.header_wt[7]:[]}
+                     self.header_wt[6]:[]}
         streamID = ""
         with open(in_weight_table, "rb") as csvfile:
             reader = csv.reader(csvfile)
@@ -231,14 +231,14 @@ class CreateInflowFileFromECMWFRunoff(object):
                     if len(row) != len(self.header_wt):
                         messages.addErrorMessage(self.errorMessages[4])
                         raise arcpy.ExecuteError
-                    #check header
-                    if row[1:len(self.header_wt)] != self.header_wt[1:len(self.header_wt)]:
-                        messages.addErrorMessage(self.errorMessages[5])
-                        arcpy.ExecuteError
+                    # #check header
+                    # if row[1:len(self.header_wt)] != self.header_wt[1:len(self.header_wt)]:
+                    #     messages.addErrorMessage(self.errorMessages[5])
+                    #     arcpy.ExecuteError
                     streamID = row[0]
                     count += 1
                 else:
-                    for i in range(0,8):
+                    for i in range(0,7):
                        dict_list[self.header_wt[i]].append(row[i])
                     count += 1
 
