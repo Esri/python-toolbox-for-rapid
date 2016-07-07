@@ -92,8 +92,8 @@ class CreateMuskingumXfile(object):
         
         if Input_Reservoir:
             #Determine if drainageline intersects rservoir
-            #create feature class where reservoirs and drainagelines intersect #"in_memory"
-            Reservoir_Drainagelines = os.path.join(os.path.dirname(Drainage_Lines), "Reservoir_Drainagelines")
+            #create feature class where reservoirs and drainagelines intersect 
+            Reservoir_Drainagelines = os.path.join("in_memory", "Reservoir_Drainagelines")
             inFeatures = [Drainage_Lines, Input_Reservoir]
             arcpy.Intersect_analysis(in_features=inFeatures, out_feature_class=Reservoir_Drainagelines, join_attributes="ALL", cluster_tolerance="-1 Unknown", output_type="INPUT")
             arcpy.AddField_management(Reservoir_Drainagelines, Musk_x, "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
