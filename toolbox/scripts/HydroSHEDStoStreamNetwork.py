@@ -116,7 +116,6 @@ class HydroSHEDStoStreamNetwork(object):
         Output_Coordinate_System = parameters[4].valueAsText
         Input_DEM_Rasters = parameters[5].valueAsText
         Watershed_Flow_Direction_Rasters = parameters[6].valueAsText        
-
         # Local variables:
         Path_to_GDB = os.path.join(File_GDB_Location, File_GDB_Name)
         Dataset = "Layers"
@@ -170,8 +169,13 @@ class HydroSHEDStoStreamNetwork(object):
         ArcHydroTools.FlowAccumulation(Output_Flow_Direction_Raster, Output_Flow_Accumulation_Raster)
 
         # Process: Stream Definition
+        Output_Str_Raster_Initial = os.path.join(Path_to_GDB, "StrInitial")
+        ArcHydroTools.StreamDefinition(Output_Flow_Accumulation_Raster, Number_of_cells_to_define_stream, Output_Str_Raster_Initial)
+        #NOTE: Sometimes ArcHydro does not catch really large flow accumulations, this fixes that
         Output_Str_Raster = os.path.join(Path_to_GDB, "Str")
-        ArcHydroTools.StreamDefinition(Output_Flow_Accumulation_Raster, Number_of_cells_to_define_stream, Output_Str_Raster)
+        str_con_raster = arcpy.sa.Con(arcpy.sa.Raster(Output_Flow_Accumulation_Raster) > max(100000, int(Number_of_cells_to_define_stream)), 1, Output_Str_Raster_Initial)
+        str_con_raster.save(Output_Str_Raster)
+        arcpy.Delete_management(Output_Str_Raster_Initial)        
         
         # Process: Stream Segmentation
         Output_StrLnk_Raster = os.path.join(Path_to_GDB, "StrLnk")
@@ -214,8 +218,11 @@ class HydroSHEDStoStreamNetwork(object):
         arcpy.AddSurfaceInformation_3d(Output_Projected_DrainageLine,Output_Elevation_DEM, "SURFACE_LENGTH;AVG_SLOPE")
         
         #CLEANUP
+        arcpy.Delete_management(Output_Str_Raster)
+        arcpy.Delete_management(Output_Cat)
+        arcpy.Delete_management(Output_StrLnk_Raster)
         arcpy.Delete_management(Output_DrainageLine)
         arcpy.Project_management(Output_Projected_DrainageLine, Output_DrainageLine, Coordinate_System)
         arcpy.Delete_management(Output_Projected_DrainageLine)
         arcpy.Delete_management(Watershed_Buffer)
-        return
+        return(Output_DrainageLine, Output_Catchment)
