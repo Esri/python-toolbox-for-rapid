@@ -155,7 +155,6 @@ class HydroSHEDStoStreamNetwork(object):
         else:
             Watershed_Buffer = Watershed_Boundary
         
-        arcpy.AddMessage(Input_DEM_Rasters)  ###must remove
         # Process: Mosaic To New Raster for DEM
         arcpy.MosaicToNewRaster_management(Input_DEM_Rasters, Path_to_GDB, "Mosaic_Elevation_DEM",
                                            "", "16_BIT_SIGNED", "", "1", "LAST", "FIRST")
