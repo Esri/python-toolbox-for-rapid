@@ -146,6 +146,14 @@ class CreateMuskingumKfacFile(object):
 
 
         np_table = arcpy.da.TableToNumPyArray(in_drainage_line, [stream_id, length, slope])
+        
+        #filter out None/NaN values
+        np_table[slope] = np.where((np_table[slope] == np.array(None)) | np.isnan(np_table[slope]),
+                                    -9999, np_table[slope])
+
+        np_table[length] = np.where((np_table[length] == np.array(None)) | np.isnan(np_table[slope]),
+                                    0, np_table[length])
+                                    
         connectivity_table = self.csvToList(in_connectivity_file)
         
         length_slope_array = []
@@ -163,7 +171,7 @@ class CreateMuskingumKfacFile(object):
                 
                 streamIDindex = np_table[stream_id]==streamID
                 # find the slope
-                stream_slope = np_table[streamIDindex][slope]
+                stream_slope = np_table[slope][streamIDindex]
                 
                 if stream_slope <= 0:
                     #if no slope, take average of upstream and downstream to get it
@@ -171,7 +179,7 @@ class CreateMuskingumKfacFile(object):
                     next_down_slope = 0
                     try:
                         next_down_index = np.where(np_table[stream_id]==nextDownID)[0][0]
-                        next_down_slope = np_table[next_down_index][slope]
+                        next_down_slope = np_table[slope][next_down_index]
                     except IndexError:
                         pass
                         
@@ -179,7 +187,7 @@ class CreateMuskingumKfacFile(object):
                     next_up_slope = 0
                     try:
                         next_up_index = np.where(np_table[stream_id]==nextUpID)[0][0]
-                        next_up_slope = np_table[next_up_index][slope]
+                        next_up_slope = np_table[slope][next_up_index]
                     except IndexError:
                         pass
                         
@@ -189,7 +197,7 @@ class CreateMuskingumKfacFile(object):
                         stream_slope = 0.001
                 
                 # find the length
-                stream_length = np_table[streamIDindex][length]*1000
+                stream_length = np_table[length][streamIDindex]*1000
                 if formula_type >= 3:
                     length_slope_array.append(stream_length/stream_slope**0.5)
                     kfac2_array.append(stream_length/celerity)
