@@ -45,20 +45,18 @@ class AutomaticRAPIDfileGenerator(object):
                                                   parameterType="Required",
                                                   datatype="GPFeatureLayer")
                                                
-        Input_DEM_Rasters = arcpy.Parameter(name="Input_DEM",
-                                            displayName="Input DEM rasters",
-                                            direction="Input",
-                                            parameterType="Required",
-                                            datatype="DERasterDataset",
-                                            multiValue=True)
+        Input_DEM_Location = arcpy.Parameter(name="Input_DEM_Location",
+                                             displayName="Input DEM Location",
+                                             direction="Input",
+                                             parameterType="Required",
+                                             datatype="DEFolder")
+                                                                                         
+        Input_Flow_Location = arcpy.Parameter(name="Input_Flow_Location",
+                                              displayName="Input Flow Direction Location",
+                                              direction="Input",
+                                              parameterType="Optional",
+                                              datatype="DEFolder")
 
-        Watershed_Flow_Direction_Rasters = arcpy.Parameter(name="Watershed_Flow_Direction_Rasters",
-                                                           displayName="Watershed flow direction rasters",
-                                                           direction="Input",
-                                                           parameterType="Optional",
-                                                           datatype="DERasterDataset",
-                                                           multiValue=True)
-                                                          
         Number_of_cells_to_define_stream = arcpy.Parameter(name="Number_of_cells_to_define_stream",
                                                            displayName="Number of cells to define stream",
                                                            direction="Input",
@@ -69,7 +67,7 @@ class AutomaticRAPIDfileGenerator(object):
                                         displayName="Added 20 kilometer Buffer",
                                         direction="Input",
                                         parameterType="Optional",
-                                        datatype="GPBoolean")
+                                        datatype="GPBoolean")                                                           
                                                            
         Input_Reservoir = arcpy.Parameter(name = 'Reservoir Input',
                                            displayName = 'Input_Reservoirs',
@@ -79,8 +77,8 @@ class AutomaticRAPIDfileGenerator(object):
         Input_Reservoir.filter.list = ['Polygon']
 
                                                           
-        params = [rapid_file_Location, Watershed_Boundaries, Watershed_Boundaries_FC, Input_DEM_Rasters,
-                  Watershed_Flow_Direction_Rasters, Number_of_cells_to_define_stream,
+        params = [rapid_file_Location, Watershed_Boundaries, Watershed_Boundaries_FC, Input_DEM_Location,
+                  Input_Flow_Location, Number_of_cells_to_define_stream,
                   Buffer_Option, Input_Reservoir]
 
         return params
@@ -115,8 +113,8 @@ class AutomaticRAPIDfileGenerator(object):
         rapid_file_Location = parameters[0].valueAsText
         Watershed_Boundaries = parameters[1].valueAsText
         Watershed_Boundaries_FC = parameters[2].valueAsText
-        Input_DEM_Rasters = parameters[3].valueAsText
-        Watershed_Flow_Direction_Rasters = parameters[4].valueAsText
+        DEM_Location = parameters[3].valueAsText
+        FlowDir_Location = parameters[4].valueAsText
         Number_of_cells_to_define_stream = parameters[5].valueAsText
         Buffer_Option = parameters[6].valueAsText
         Input_Reservoir = parameters[7].valueAsText
@@ -142,13 +140,17 @@ class AutomaticRAPIDfileGenerator(object):
         AllRegionNicknames = []
         rows = arcpy.UpdateCursor(Watershed_Boundaries)
         for row in rows:
-            HYBAS_ID = int(row.getValue("HYBAS_ID"))
+            HYBAS_ID = row.getValue("HYBAS_ID")
             AllRegionHYBAS_ID.append(HYBAS_ID)
             RegionName = row.getValue("RegionName")
             AllRegionNicknames.append(RegionName)
-            regionID = str(HYBAS_ID) + "-" + str(RegionName).lower().replace(" ", "_")
+            regionID = str(int(HYBAS_ID)) + "-" + str(RegionName)
             regionfolder = arcpy.CreateFolder_management(rapid_file_Location, regionID)
             AllRegionNames.append(regionID)
+            '''
+            utm = row.getValue("UTM_Zones")
+            utmZones.append(utm)
+            '''
         del row
         del rows
 
@@ -157,54 +159,90 @@ class AutomaticRAPIDfileGenerator(object):
         script_directory = os.path.dirname(__file__)
         arcpy.ImportToolbox(os.path.join(os.path.dirname(script_directory), "RAPID Tools.pyt"))
         
-        # Process: Mosaic To New Raster for DEM
-        Output_Mosaic_Elevation_DEM = os.path.join(rapid_file_Location, "Mosaic_Elevation_DEM")
-        arcpy.MosaicToNewRaster_management(Input_DEM_Rasters, rapid_file_Location, "Mosaic_Elevation_DEM",
-                                           "", "16_BIT_SIGNED", "", "1", "LAST", "FIRST")
-        
-        Output_Mosiac_Flow_Direction_Raster = os.path.join(rapid_file_Location, "Mosaic_Flow_Direction")
-        if Watershed_Flow_Direction_Rasters:
-            # Process: Mosaic To New Raster for Flow Direction
-            arcpy.MosaicToNewRaster_management(Watershed_Flow_Direction_Rasters, rapid_file_Location, "Mosaic_Flow_Direction", 
-                                               "", "16_BIT_SIGNED", "", "1", "LAST", "FIRST")
-        else:
-            #generate flow direction raster
-            ArcHydroTools.FlowDirection(Output_Mosaic_Elevation_DEM, Output_Mosiac_Flow_Direction_Raster)
-        
         while index < number_of_basins:
             #select basin 
             basins = os.path.join("in_memory", "basins")
             basinclip = arcpy.SelectLayerByAttribute_management(featureBasins, "NEW_SELECTION", '"FID" = %d' %index) 
             arcpy.Clip_analysis(basinclip, basinclip, basins) 
 
-            # Process: Optional Buffer
-            if str(Buffer_Option) == 'true':
-                arcpy.Buffer_analysis(basins, Watershed_Buffer, Buffer_Distance, 
-                                      "FULL", "ROUND", "NONE", "", "PLANAR")
+            #Determine what data needs to be downloaded
+            desc = arcpy.Describe(basins)
+            #rectangular bounds of watershed
+            xmin = desc.extent.XMin
+            xmax = desc.extent.XMax
+            ymin = desc.extent.YMin
+            ymax = desc.extent.YMax
+            #bounds of Hydrosheds data needed
+            newxmin = int(math.floor(xmin/5.0) * 5)
+            newxmax = int(math.ceil(xmax/5.0) * 5)
+            newymin = int(math.floor(ymin/5.0) * 5)
+            newymax = int(math.ceil(ymax/5.0) * 5)
+            #create list of files to download
+            xtiles = ((newxmax - newxmin)/5) 
+            ytiles = ((newymax-newymin)/5)
+            DEMfile_names = []
+            FlowDirfile_names = []
+            xindex = 0
+            yindex = 0
+            while xindex < xtiles:
+                east = newxmin + (xindex * 5)
+                if east >= 0:
+                    longitude = "e"
+                    easting = str(east).zfill(3)  #pads with zeros
+                else:
+                    longitude = "w"
+                    easting = str(-east).zfill(3)  #pads with zeros
+                while yindex < ytiles:
+                    north = newymin + (yindex * 5)
+                    if north >= 0:
+                        latitude = "n"
+                        northing = str(north).zfill(2)  #pads with zeros
+                    else:
+                        latitude = "s"
+                        northing = str(-north).zfill(2)  #pads with zeros
+                    DEMfile = "%s%s%s%s_con.bil" %(latitude, northing, longitude, easting)
+                    DEMlocationName = os.path.join(DEM_Location, DEMfile)
+                    DEMfile_names.append(DEMlocationName)
+                    if FlowDir_Location:
+                        flowdirfile ="%s%s%s%s_dir.grid" %(latitude, northing, longitude, easting)
+                        FlowDirlocationName = os.path.join(FlowDir_Location, flowdirfile) 
+                        if arcpy.Exists(FlowDirlocationName):
+                            FlowDirfile_names.append(FlowDirlocationName)
+                    yindex = yindex + 1
+                xindex = xindex + 1
+                yindex = 0 
+            
+            #delete nonexistant files
+            file_exist_index = 0
+            existing_DEM_files = []
+            existing_FlowDir_files = []
+            while file_exist_index < len(DEMfile_names):
+                if (arcpy.Exists(DEMfile_names[file_exist_index])):
+                    if FlowDir_Location:
+                        existing_FlowDir_files.append(FlowDirfile_names[file_exist_index])
+                    existing_DEM_files.append(DEMfile_names[file_exist_index])
+                file_exist_index = file_exist_index + 1    
+            
+            #Create multivalue input 
+            DEMmulivalue = ";".join(existing_DEM_files )
+            if FlowDir_Location:
+                FlowDirmulivalue = ";".join(existing_FlowDir_files )
             else:
-                Watershed_Buffer = basins
-                
-            # Process: Extract by Mask for Flow Direction
-            Output_Flow_Direction_Raster = os.path.join(rapid_file_Location, "Flow_Direction")
-            arcpy.gp.ExtractByMask_sa(Output_Mosiac_Flow_Direction_Raster, Watershed_Buffer, Output_Flow_Direction_Raster)
-            arcpy.Delete_management(Output_Mosiac_Flow_Direction_Raster)
-
-            # Process: Extract by Mask for DEM
-            Output_Elevation_DEM = os.path.join(rapid_file_Location, "Elevation_DEM")
-            arcpy.gp.ExtractByMask_sa(Output_Mosaic_Elevation_DEM, Watershed_Buffer, Output_Elevation_DEM)
-            arcpy.Delete_management(Output_Mosaic_Elevation_DEM)
-
+                FlowDirmulivalue = ""
+            arcpy.AddMessage(DEMmulivalue)
+            arcpy.AddMessage(FlowDirmulivalue)
+         
             #generate stream network
             regionfolder = os.path.join(rapid_file_Location, AllRegionNames[index])
             regionID = AllRegionNames[index]
-            arcpy.HydroSHEDStoStreamNetwork_RAPIDTools(regionID, regionfolder, Watershed_Buffer, Number_of_cells_to_define_stream,  AllCoordinates[index], "", Output_Elevation_DEM, Output_Flow_Direction_Raster)
+            arcpy.HydroSHEDStoStreamNetwork_RAPIDTools(regionID, regionfolder, basins, Number_of_cells_to_define_stream, AllCoordinates[index], Buffer_Option, DEMmulivalue, FlowDirmulivalue)
             Output_DrainageLine = os.path.join(os.path.join(regionfolder, os.path.join("%s.gdb" % regionID, "Layers")), "DrainageLine")
             Output_Catchment = os.path.join(os.path.join(regionfolder, os.path.join("%s.gdb" % regionID, "Layers")), "Catchment")
             arcpy.AddMessage(Output_DrainageLine)
 
             #generate RAPID files
             RAPIDregionfolder = arcpy.CreateFolder_management(regionfolder, ("RAPID_Files-%s" % regionID))
-            arcpy.StreamNetworktoRAPID_RAPIDTools(RAPIDregionfolder, Output_DrainageLine, "HydroID", "NextDownID", Output_Catchment, "DrainLnID", Input_Reservoir) 
+            arcpy.StreamNetworktoRAPID_RAPIDTools(RAPIDregionfolder, Output_DrainageLine, "HydroID", "NextDownID", "SLength", "Avg_Slope", Output_Catchment, "DrainLnID", Input_Reservoir) 
             
             #Generate SPT files
             STPregionfolder = arcpy.CreateFolder_management(regionfolder, ("STP_Files_%s" % regionID))
@@ -212,9 +250,6 @@ class AutomaticRAPIDfileGenerator(object):
             
             #delete clip
             arcpy.Delete_management(basins)
-            arcpy.Delete_management(Watershed_Buffer)
-            arcpy.Delete_management(Output_Flow_Direction_Raster)
-            arcpy.Delete_management(Output_Elevation_DEM)
             
             index = index + 1
         
