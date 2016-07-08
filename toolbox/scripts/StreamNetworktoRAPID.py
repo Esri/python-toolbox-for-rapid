@@ -170,7 +170,7 @@ class StreamNetworktoRAPID(object):
                                               out_muskingum_k_file)
                                               
         # Process: Muskingum x  
-        arcpy.CreateMuskingumXfile_RAPIDTools(rapid_out_folder, Drainage_Lines, "0.3", Input_Reservoirs)
+        arcpy.CreateMuskingumXfile_RAPIDTools(rapid_out_folder, Drainage_Lines, Stream_ID_DrainageLine,"0.3", Input_Reservoirs)
 
         lsm_grid_directory = os.path.join(script_directory, "lsm_grids")
         
