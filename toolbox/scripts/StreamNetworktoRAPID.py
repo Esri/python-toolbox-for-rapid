@@ -55,7 +55,27 @@ class StreamNetworktoRAPID(object):
         Next_Down_ID.parameterDependencies = ["input_Drainage_Lines"]
         Next_Down_ID.filter.list = ['Short', 'Long']
         Next_Down_ID.value = "NextDownID"                        
-        
+
+        length_field_DrainageLine = arcpy.Parameter(name="length_field_DrainageLine",
+                                                    displayName="Length Field (km)",
+                                                    direction="Input",
+                                                    parameterType="Required",
+                                                    datatype="Field")
+                                                 
+        length_field_DrainageLine.parameterDependencies = ["input_Drainage_Lines"]
+        length_field_DrainageLine.filter.list = ['Double']
+        length_field_DrainageLine.value = "SLength"
+
+        Slope_field_DrainageLine = arcpy.Parameter(name="Slope_field_DrainageLine",
+                                                   displayName="Slope Field",
+                                                   direction="Input",
+                                                   parameterType="Required",
+                                                   datatype="Field")
+                                                 
+        Slope_field_DrainageLine.parameterDependencies = ["input_Drainage_Lines"]
+        Slope_field_DrainageLine.filter.list = ['Double']
+        Slope_field_DrainageLine.value = "Avg_Slope"
+
         Catchment_Features = arcpy.Parameter(name="Catchment_Features",
                                              displayName="Input Catchment Features",
                                              direction="Input",
@@ -83,8 +103,10 @@ class StreamNetworktoRAPID(object):
 
         params = [rapid_out_folder,
                   input_Drainage_Lines, 
-                  Stream_ID_DrainageLine, 
+                  Stream_ID_DrainageLine,
                   Next_Down_ID,
+                  length_field_DrainageLine,
+                  Slope_field_DrainageLine,
                   Catchment_Features,
                   Stream_ID_Catchments,
                   Input_Reservoir, 
@@ -133,9 +155,11 @@ class StreamNetworktoRAPID(object):
         Drainage_Lines = parameters[1].valueAsText
         Stream_ID_DrainageLine = parameters[2].valueAsText
         Next_Down_ID = parameters[3].valueAsText
-        Catchment_Features = parameters[4].valueAsText
-        Stream_ID_Catchments = parameters[5].valueAsText
-        Input_Reservoirs = parameters[6].valueAsText
+        length_field_DrainageLine = parameters[4].valueAsText
+        Slope_field_DrainageLine = parameters[5].valueAsText
+        Catchment_Features = parameters[6].valueAsText
+        Stream_ID_Catchments = parameters[7].valueAsText
+        Input_Reservoirs = parameters[8].valueAsText
        
        
         script_directory = os.path.dirname(__file__)
@@ -157,8 +181,8 @@ class StreamNetworktoRAPID(object):
         out_muskingum_kfac_file = os.path.join(rapid_out_folder, "kfac.csv")
         arcpy.CreateMuskingumKfacFile_RAPIDTools(in_drainage_line_features=Drainage_Lines, 
                                                  stream_ID=Stream_ID_DrainageLine, 
-                                                 length="SLength", 
-                                                 slope="Avg_Slope", 
+                                                 length=length_field_DrainageLine, 
+                                                 slope=Slope_field_DrainageLine, 
                                                  co=1000.0/3600.0, 
                                                  in_formula="Eta*River Length/Sqrt(River Slope) [0.05, 0.95]", 
                                                  in_network_connectivity_file=out_network_connectivity_file,
