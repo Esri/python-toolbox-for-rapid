@@ -56,7 +56,7 @@ class HydroSHEDStoStreamNetwork(object):
         Buffer_Option = arcpy.Parameter(name="Buffer_Option",
                                         displayName="Added 20 kilometer Buffer",
                                         direction="Input",
-                                        parameterType="Required",
+                                        parameterType="Optional",
                                         datatype="GPBoolean")
                                                            
         #SET DEFAULT TO EQUIDISTAN PROJECTION BECAUSE WE USE IT TO GET LENGTH/SLOPE                                           
@@ -155,7 +155,7 @@ class HydroSHEDStoStreamNetwork(object):
         else:
             Watershed_Buffer = Watershed_Boundary
         
-        arcpy.AddMessage(Input_DEM_Rasters)
+        arcpy.AddMessage(Input_DEM_Rasters)  ###must remove
         # Process: Mosaic To New Raster for DEM
         arcpy.MosaicToNewRaster_management(Input_DEM_Rasters, Path_to_GDB, "Mosaic_Elevation_DEM",
                                            "", "16_BIT_SIGNED", "", "1", "LAST", "FIRST")
@@ -212,10 +212,12 @@ class HydroSHEDStoStreamNetwork(object):
         arcpy.DeleteField_management(Output_Catchment, "HydroID_1")
         
         # Process: Delete rows that do not have a drainage line associated with it
-        up_curs = arcpy.UpdateCursor(Output_Catchment,"{0} IS NULL".format("DrainLnID"))  
-        for row in up_curs:  
-            if not row.DrainLnID:  
-                up_curs.deleteRow(row)
+        with arcpy.UpdateCursor(Output_Catchment,"{0} IS NULL".format("DrainLnID")) as up_curs:
+            for row in up_curs:  
+                if not row.DrainLnID:  
+                    up_curs.deleteRow(row)
+            del row
+        del up_curs
 
         # Process: Adjoint Catchment Processing
 ##        Output_Adjoint_Catchment = os.path.join(Path_to_GDB_dataset, "AdjointCatchment")        
@@ -228,6 +230,14 @@ class HydroSHEDStoStreamNetwork(object):
         # Process: Add Surface Information
         arcpy.CheckOutExtension("3D")
         arcpy.AddSurfaceInformation_3d(Output_Projected_DrainageLine,Output_Elevation_DEM, "SURFACE_LENGTH;AVG_SLOPE")
+
+        # Process: Delete rows that do not have a drainage line associated with it
+        #add field
+        up_curs = arcpy.UpdateCursor(Output_Projected_DrainageLine, ["SLength", "LENGTHKM"])  
+        for row in up_curs:  
+            row[1] = float(row[0])/1000.0
+            up_curs.updateRow(row)
+
         
         #CLEANUP
         arcpy.Delete_management(Output_Str_Raster)
