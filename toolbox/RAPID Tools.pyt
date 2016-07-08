@@ -10,9 +10,11 @@ from AddSPTFields import AddSPTFields
 from AutomaticRAPIDfileGenerator import AutomaticRAPIDfileGenerator
 from CopyDataToServer import CopyDataToServer
 from CreateNetworkConnectivityFile import CreateNetworkConnectivityFile
+from CreateNetworkConnectivityFileNHDPlus import CreateNetworkConnectivityFileNHDPlus
 from CreateMuskingumParameterFiles import CreateMuskingumParameterFiles
 from CreateMuskingumKFile import CreateMuskingumKFile
 from CreateMuskingumKfacFile import CreateMuskingumKfacFile
+from CreateRivIDGageFile import CreateRivIDGageFile
 from CreateSubsetFile import CreateSubsetFile
 from CreateWeightTableFromWRFGeogrid import CreateWeightTableFromWRFGeogrid
 from CreateInflowFileFromWRFHydroRunoff import CreateInflowFileFromWRFHydroRunoff
@@ -43,10 +45,12 @@ class Toolbox(object):
                       AutomaticRAPIDfileGenerator, 
                       CopyDataToServer,
                       CreateNetworkConnectivityFile,
+                      CreateNetworkConnectivityFileNHDPlus,
                       CreateMuskingumParameterFiles,
                       CreateMuskingumKFile,
                       CreateMuskingumKfacFile,
                       CreateMuskingumXfile, 
+                      CreateRivIDGageFile, 
                       CreateSubsetFile,
                       CreateWeightTableFromWRFGeogrid,
                       CreateInflowFileFromWRFHydroRunoff,

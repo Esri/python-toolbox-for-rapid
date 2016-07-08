@@ -37,6 +37,16 @@ class CreateMuskingumXfile(object):
                                          datatype="GPFeatureLayer")
         input_Drainage_Lines.filter.list = ['Polyline']
 
+        stream_id = arcpy.Parameter(name = "stream_ID",
+                                    displayName = "Stream ID",
+                                    direction = "Input",
+                                    parameterType = "Required",
+                                    datatype = "Field"
+                                    )
+        stream_id.parameterDependencies = ["input_Drainage_Lines"]
+        stream_id.filter.list = ['Short', 'Long', 'Double']
+        stream_id.value = "HydroID"
+
         Default_x = arcpy.Parameter(name="Default_x",
                                     displayName="Default x value",
                                     direction="Input",
@@ -53,6 +63,7 @@ class CreateMuskingumXfile(object):
 
         params = [rapid_out_folder, 
                   input_Drainage_Lines, 
+                  stream_id, 
                   Default_x, 
                   Input_Reservoir]
 
@@ -77,8 +88,9 @@ class CreateMuskingumXfile(object):
         
         rapid_out_folder = parameters[0].valueAsText
         Drainage_Lines = parameters[1].valueAsText
-        Default_x = parameters[2].valueAsText
-        Input_Reservoir = parameters[3].valueAsText
+        stream_id = parameters[2].valueAsText
+        Default_x = parameters[3].valueAsText
+        Input_Reservoir = parameters[4].valueAsText
 
         # Process: Muskingum x  
         #check to see if a Muskingum x already exists
@@ -99,7 +111,7 @@ class CreateMuskingumXfile(object):
             arcpy.AddField_management(Reservoir_Drainagelines, Musk_x, "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
             #field "Musk_x" set to 0.0 if drainageline intersects with reservoir
             arcpy.CalculateField_management(Reservoir_Drainagelines, Musk_x, "0.0", "PYTHON", "")
-            arcpy.JoinField_management(Drainage_Lines, "HydroID", Reservoir_Drainagelines, "HydroID", Musk_x)
+            arcpy.JoinField_management(Drainage_Lines, stream_id, Reservoir_Drainagelines, stream_id, Musk_x)
             #changes muckingum x to Default_x if musk_x = null
             with arcpy.da.UpdateCursor(Drainage_Lines,
                                        [Musk_x]) as cursor:
@@ -122,7 +134,7 @@ class CreateMuskingumXfile(object):
         #generate file 
         out_muskingum_x_file = os.path.join(rapid_out_folder, "x.csv")
         ##make a list of all of the fields in the table
-        field_names = ['HydroID', Musk_x]
+        field_names = [stream_id, Musk_x]
         with open(out_muskingum_x_file,'wb') as csvfile:
             connectwriter = csv.writer(csvfile, dialect='excel')
             for row in sorted(arcpy.da.SearchCursor(Drainage_Lines, field_names)):
