@@ -3,12 +3,12 @@
  Source Name: CreateNetworkConnectivityFileNHDPlus.py
  Version:     ArcGIS 10.2
  License:     Apache 2.0
- Author:      Environmental Systems Research Institute Inc.
- Updated by:  Environmental Systems Research Institute Inc.
+ Author:      Alan D. Snow, US Army ERDC (Based on script by Cedric David)
+ Updated by:  Alan D. Snow, US Army ERDC
  Description: Generates CSV file of stream network connectivity for RAPID based on
-              the input Drainage Line feature class with HydroID and NextDownID fields.
- History:     Initial coding - 07/07/2014, version 1.0
- Updated:     Version 1.0, Initial coding - 07/07/2014, version 1.0
+              the input NHDPlus flowlines with COMID, FROMNODE, TONODE, and DIVERGENCE.
+ History:     Initial coding - 07/08/2016, version 1.0
+ Updated:     Version 1.0, Initial coding - 07/08/2016, version 1.0
 -------------------------------------------------------------------------------'''
 import arcpy
 import csv
@@ -20,7 +20,7 @@ class CreateNetworkConnectivityFileNHDPlus(object):
         """Define the tool (tool name is the name of the class)."""
         self.label = "Create Connectivity File for NHDPlus network"
         self.description = "Creates Network Connectivity input CSV file for RAPID \
-        based on the Drainage Line feature class with COMID, FROMNODE, TONODE fields"
+        based on the Drainage Line feature class with COMID, FROMNODE, TONODE, and DIVERGENCE fields"
         self.canRunInBackground = False
         self.category = "Preprocessing"
 
