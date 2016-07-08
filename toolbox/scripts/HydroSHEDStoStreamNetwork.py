@@ -52,7 +52,13 @@ class HydroSHEDStoStreamNetwork(object):
                                                    direction="Input",
                                                    parameterType="Required",
                                                    datatype="GPCoordinateSystem")
-                                                   
+        
+        Buffer_Option = arcpy.Parameter(name="Buffer_Option",
+                                        displayName="Added 20 kilometer Buffer",
+                                        direction="Input",
+                                        parameterType="Required",
+                                        datatype="GPBoolean")
+                                                           
         #SET DEFAULT TO EQUIDISTAN PROJECTION BECAUSE WE USE IT TO GET LENGTH/SLOPE                                           
         Output_Coordinate_System.value = "PROJCS['World_Equidistant_Cylindrical',GEOGCS['GCS_WGS_1984'" \
                                          ",DATUM['D_WGS_1984',SPHEROID['WGS_1984',6378137.0,298.257223563]]" \
@@ -76,7 +82,7 @@ class HydroSHEDStoStreamNetwork(object):
                                                            multiValue=True)
                                                           
         params = [File_GDB_Name, File_GDB_Location, Watershed_Boundary,
-                  Number_of_cells_to_define_stream, Output_Coordinate_System,
+                  Number_of_cells_to_define_stream, Output_Coordinate_System, Buffer_Option,
                   Input_DEM_Rasters, Watershed_Flow_Direction_Rasters]
 
         return params
@@ -114,8 +120,10 @@ class HydroSHEDStoStreamNetwork(object):
         Watershed_Boundary = parameters[2].valueAsText
         Number_of_cells_to_define_stream = parameters[3].valueAsText
         Output_Coordinate_System = parameters[4].valueAsText
-        Input_DEM_Rasters = parameters[5].valueAsText
-        Watershed_Flow_Direction_Rasters = parameters[6].valueAsText        
+        Buffer_Option = parameters[5].valueAsText
+        Input_DEM_Rasters = parameters[6].valueAsText
+        Watershed_Flow_Direction_Rasters = parameters[7].valueAsText  
+        
         # Local variables:
         Path_to_GDB = os.path.join(File_GDB_Location, File_GDB_Name)
         Dataset = "Layers"
@@ -140,10 +148,14 @@ class HydroSHEDStoStreamNetwork(object):
         # Process: Create Feature Dataset
         arcpy.CreateFeatureDataset_management(Path_to_GDB, Dataset, Coordinate_System)
 
-        # Process: Buffer
-        arcpy.Buffer_analysis(Watershed_Boundary, Watershed_Buffer, Buffer_Distance, 
-                              "FULL", "ROUND", "NONE", "", "PLANAR")
-
+        # Process: Optional Buffer
+        if str(Buffer_Option) == 'true':
+            arcpy.Buffer_analysis(Watershed_Boundary, Watershed_Buffer, Buffer_Distance, 
+                                  "FULL", "ROUND", "NONE", "", "PLANAR")
+        else:
+            Watershed_Buffer = Watershed_Boundary
+        
+        arcpy.AddMessage(Input_DEM_Rasters)
         # Process: Mosaic To New Raster for DEM
         arcpy.MosaicToNewRaster_management(Input_DEM_Rasters, Path_to_GDB, "Mosaic_Elevation_DEM",
                                            "", "16_BIT_SIGNED", "", "1", "LAST", "FIRST")

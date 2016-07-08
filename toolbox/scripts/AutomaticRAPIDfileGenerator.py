@@ -62,6 +62,12 @@ class AutomaticRAPIDfileGenerator(object):
                                                            direction="Input",
                                                            parameterType="Required",
                                                            datatype="GPLong")
+
+        Buffer_Option = arcpy.Parameter(name="Buffer_Option",
+                                        displayName="Added 20 kilometer Buffer",
+                                        direction="Input",
+                                        parameterType="Optional",
+                                        datatype="GPBoolean")
                                                            
         Input_Reservoir = arcpy.Parameter(name = 'Reservoir Input',
                                            displayName = 'Input_Reservoirs',
@@ -73,7 +79,7 @@ class AutomaticRAPIDfileGenerator(object):
                                                           
         params = [rapid_file_Location, Watershed_Boundaries, Watershed_Boundaries_FC, Input_DEM_Location,
                   Input_Flow_Location, Number_of_cells_to_define_stream,
-                  Input_Reservoir]
+                  Buffer_Option, Input_Reservoir]
 
         return params
 
@@ -110,7 +116,8 @@ class AutomaticRAPIDfileGenerator(object):
         DEM_Location = parameters[3].valueAsText
         FlowDir_Location = parameters[4].valueAsText
         Number_of_cells_to_define_stream = parameters[5].valueAsText
-        Input_Reservoir = parameters[6].valueAsText
+        Buffer_Option = parameters[6].valueAsText
+        Input_Reservoir = parameters[7].valueAsText
         
         #make boundary a feature class
         featureBasins = os.path.join(Watershed_Boundaries, "featureBasins")
@@ -133,17 +140,13 @@ class AutomaticRAPIDfileGenerator(object):
         AllRegionNicknames = []
         rows = arcpy.UpdateCursor(Watershed_Boundaries)
         for row in rows:
-            HYBAS_ID = row.getValue("HYBAS_ID")
+            HYBAS_ID = int(row.getValue("HYBAS_ID"))
             AllRegionHYBAS_ID.append(HYBAS_ID)
             RegionName = row.getValue("RegionName")
             AllRegionNicknames.append(RegionName)
-            regionID = str(int(HYBAS_ID)) + "-" + str(RegionName)
+            regionID = str(HYBAS_ID) + "-" + str(RegionName).lower().replace(" ", "_")
             regionfolder = arcpy.CreateFolder_management(rapid_file_Location, regionID)
             AllRegionNames.append(regionID)
-            '''
-            utm = row.getValue("UTM_Zones")
-            utmZones.append(utm)
-            '''
         del row
         del rows
 
@@ -193,14 +196,14 @@ class AutomaticRAPIDfileGenerator(object):
                     else:
                         latitude = "s"
                         northing = str(-north).zfill(2)  #pads with zeros
-                    DEMname = "%s%s%s%s_con_bil" %(latitude, northing, longitude, easting) 
+                    #DEMname = "%s%s%s%s_con_bil" %(latitude, northing, longitude, easting) 
                     DEMfile = "%s%s%s%s_con.bil" %(latitude, northing, longitude, easting)
-                    DEMlocationName = os.path.join(os.path.join(DEM_Location, DEMname),DEMfile)
+                    DEMlocationName = os.path.join(DEM_Location, DEMfile)
                     DEMfile_names.append(DEMlocationName)
                     if FlowDir_Location:
-                        FlowDirname = "%s%s%s%s_dir_grid" %(latitude, northing, longitude, easting)
+                        #FlowDirname = "%s%s%s%s_dir_grid" %(latitude, northing, longitude, easting)
                         flowdirfile ="%s%s%s%s_dir.grid" %(latitude, northing, longitude, easting)
-                        FlowDirlocationName = os.path.join(os.path.join(FlowDir_Location, FlowDirname), flowdirfile)                
+                        FlowDirlocationName = os.path.join(FlowDir_Location, flowdirfile)                
                         FlowDirfile_names.append(FlowDirlocationName)
                     yindex = yindex + 1
                 xindex = xindex + 1
@@ -215,7 +218,7 @@ class AutomaticRAPIDfileGenerator(object):
             #generate stream network
             regionfolder = os.path.join(rapid_file_Location, AllRegionNames[index])
             regionID = AllRegionNames[index]
-            arcpy.HydroSHEDStoStreamNetwork_RAPIDTools(regionID, regionfolder, basins, Number_of_cells_to_define_stream, AllCoordinates[index], DEMmulivalue)
+            arcpy.HydroSHEDStoStreamNetwork_RAPIDTools(regionID, regionfolder, basins, Number_of_cells_to_define_stream,  AllCoordinates[index], Buffer_Option, DEMmulivalue, "")
             Output_DrainageLine = os.path.join(os.path.join(regionfolder, os.path.join("%s.gdb" % regionID, "Layers")), "DrainageLine")
             Output_Catchment = os.path.join(os.path.join(regionfolder, os.path.join("%s.gdb" % regionID, "Layers")), "Catchment")
             arcpy.AddMessage(Output_DrainageLine)
