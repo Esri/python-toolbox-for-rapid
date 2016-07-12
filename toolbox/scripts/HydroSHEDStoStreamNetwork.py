@@ -211,12 +211,11 @@ class HydroSHEDStoStreamNetwork(object):
         arcpy.DeleteField_management(Output_Catchment, "HydroID_1")
         
         # Process: Delete rows that do not have a drainage line associated with it
-        with arcpy.UpdateCursor(Output_Catchment,"{0} IS NULL".format("DrainLnID")) as up_curs:
-            for row in up_curs:  
-                if not row.DrainLnID:  
-                    up_curs.deleteRow(row)
-            del row
-        del up_curs
+        up_curs = arcpy.UpdateCursor(Output_Catchment,"{0} IS NULL".format("DrainLnID"))
+        for row in up_curs:  
+            if not row.DrainLnID:  
+                up_curs.deleteRow(row)
+
 
         # Process: Adjoint Catchment Processing
 ##        Output_Adjoint_Catchment = os.path.join(Path_to_GDB_dataset, "AdjointCatchment")        
@@ -230,13 +229,15 @@ class HydroSHEDStoStreamNetwork(object):
         arcpy.CheckOutExtension("3D")
         arcpy.AddSurfaceInformation_3d(Output_Projected_DrainageLine,Output_Elevation_DEM, "SURFACE_LENGTH;AVG_SLOPE")
 
-        # Process: Delete rows that do not have a drainage line associated with it
         #add field
-        up_curs = arcpy.UpdateCursor(Output_Projected_DrainageLine, ["SLength", "LENGTHKM"])  
-        for row in up_curs:  
-            row[1] = float(row[0])/1000.0
-            up_curs.updateRow(row)
-
+        arcpy.AddField_management(Output_Projected_DrainageLine, "LENGTHKM", "FLOAT", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")        
+        
+        cursor = arcpy.UpdateCursor(Output_Projected_DrainageLine, ["SLength", "LENGTHKM"])  
+        for row in cursor:  
+            SLength = row.getValue("SLength")
+            LENGTHKM = SLength/1000.0
+            row.setValue("LENGTHKM", LENGTHKM)
+            cursor.updateRow(row)
         
         #CLEANUP
         arcpy.Delete_management(Output_Str_Raster)
