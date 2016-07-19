@@ -227,6 +227,6 @@ class StreamNetworktoRAPID(object):
 
         # Flowline to point
         out_point_file =  os.path.join(rapid_out_folder, "comid_lat_lon_z.csv")
-        arcpy.FlowlineToPoint_RAPIDTools(Drainage_Lines, Stream_ID_DrainageLine, out_point_file)
+        arcpy.FlowlineToPoint_RAPIDTools(Drainage_Lines, out_point_file)
 
         return
