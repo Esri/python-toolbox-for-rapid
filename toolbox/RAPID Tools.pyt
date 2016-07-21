@@ -7,6 +7,7 @@ sys.path.append(scripts_dir)
 sys.dont_write_bytecode = True
 
 from AddSPTFields import AddSPTFields
+from AutomaticRAPIDfileGenerator import AutomaticRAPIDfileGenerator
 from CopyDataToServer import CopyDataToServer
 from CreateNetworkConnectivityFile import CreateNetworkConnectivityFile
 from CreateNetworkConnectivityFileNHDPlus import CreateNetworkConnectivityFileNHDPlus
@@ -41,6 +42,7 @@ class Toolbox(object):
 
         # List of tool classes associated with this toolbox
         self.tools = [AddSPTFields,
+                      AutomaticRAPIDfileGenerator, 
                       CopyDataToServer,
                       CreateNetworkConnectivityFile,
                       CreateNetworkConnectivityFileNHDPlus,
