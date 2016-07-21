@@ -31,19 +31,27 @@ The tools are organized into four toolsets. One for preprocessing and preparing 
 
 * #### Create Connectivity File
 
-  This tool creates the stream network connectivity file based on two fields in the input Drainage Line feature class: HydroID, and     NextDownID. It does the following:
+  This tool creates the stream network connectivity file based on two fields in the input Drainage Line feature class: HydroID, and NextDownID. It does the following:
 
   1. Finds the HydroID of each stream.
   2. Counts the total number of its upstreams.
-  3. Writes the stream HydroID, the total number of its upstreams, and the HydroID(s) of all upstream(s) into the output file. The    records are sorted in the ascending order based on the stream HydroID.
+  3. Writes the stream HydroID, the total number of its upstreams, and the HydroID(s) of all upstream(s) into the output file. The records are sorted in the ascending order based on the stream HydroID.
+
+* #### Create Connectivity File NHDPlus
+
+  This tool creates the stream network connectivity file based on four fields in the input Drainage Line feature class: COMID, FROMNODE, TONODE, DIVERGENCE. It does the following:
+
+  1. Disconnects streams with divergence greater than 1.
+  2. Creates NextDownID based on COMID, FROMNODE, and TONODE fields.
+  3. Runs the Create Connectivity File tool with updated fields.
 
 * #### Create Subset File
 
-  This tool writes the HydroID of a subset of the stream features. The subset is created by selecting stream features in the input   layer.
+  This tool writes the HydroID of a subset of the stream features. The subset is created by selecting stream features in the input layer.
 
 * #### Create Muskingum Parameters File
 
-  This tool writes the values of the Muskingum parameter fields (Musk_kfac, Musk_k, and Musk_x) into individual parameter files. The    three fields can be calculated using the Calculate Muskingum Parameters tool in the [ArcHydro toolbox](http://resources.arcgis.com/en/communities/hydro/01vn0000000s000000.htm). The records in all files are sorted in the ascending order based on the stream HydroID.
+  This tool writes the values of the Muskingum parameter fields (Musk_kfac, Musk_k, and Musk_x) into individual parameter files. The three fields can be calculated using the Calculate Muskingum Parameters tool in the [ArcHydro toolbox](http://resources.arcgis.com/en/communities/hydro/01vn0000000s000000.htm). The records in all files are sorted in the ascending order based on the stream HydroID.
 
 * #### Create Weight Table From ECMWF/WRF-Hydro Runoff
 
@@ -127,13 +135,21 @@ The tools are organized into four toolsets. One for preprocessing and preparing 
 
 ### Utilities Tools
 
-* #### Flowline to Point
+* #### Add Streamflow Prediction Tool Fields
 
-  This tool writes the centroid coordinates of flowlines into a CSV file.
+  This tool adds the fields required to be used in the Streamflow Prediction Tool web application (https://github.com/erdc-cm/tethysapp-streamflow_prediction_tool).
+
+* #### Create rivid gage file
+
+  This tool writes the file with rivid and gage ids used in the Streamflow Prediction Tool forecast framework for data assimilation (https://github.com/erdc-cm/spt_ecmwf_autorapid_process).
 
 * #### Copy Data To Server
 
   This tool copies the discharge table, the drainage line features, or both to the ArcGIS server machine from the author/publisher machine.
+
+* #### Flowline to Point
+
+  This tool writes the centroid coordinates of flowlines into a CSV file.
 
 * #### Publish Discharge Map
 
