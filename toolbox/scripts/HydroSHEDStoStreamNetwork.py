@@ -42,7 +42,7 @@ class HydroSHEDStoStreamNetwork(object):
                                             datatype="DEFeatureClass")
 
         Number_of_cells_to_define_stream = arcpy.Parameter(name="Number_of_cells_to_define_stream",
-                                                           displayName="Number of cells to define stream",
+                                                           displayName="Number of Cells to Define Stream",
                                                            direction="Input",
                                                            parameterType="Required",
                                                            datatype="GPLong")
@@ -54,7 +54,7 @@ class HydroSHEDStoStreamNetwork(object):
                                                    datatype="GPCoordinateSystem")
         
         Buffer_Option = arcpy.Parameter(name="Buffer_Option",
-                                        displayName="Added 20 kilometer Buffer",
+                                        displayName="Add 20 kilometer Buffer",
                                         direction="Input",
                                         parameterType="Optional",
                                         datatype="GPBoolean")
@@ -68,14 +68,14 @@ class HydroSHEDStoStreamNetwork(object):
                                          ",PARAMETER['Standard_Parallel_1',60.0],UNIT['Meter',1.0]]"
                                                            
         Input_DEM_Rasters = arcpy.Parameter(name="Input_DEM",
-                                            displayName="Input DEM rasters",
+                                            displayName="Input DEM Rasters",
                                             direction="Input",
                                             parameterType="Required",
                                             datatype="DERasterDataset",
                                             multiValue=True)
 
         Watershed_Flow_Direction_Rasters = arcpy.Parameter(name="Watershed_Flow_Direction_Rasters",
-                                                           displayName="Watershed flow direction rasters",
+                                                           displayName="Watershed Flow Direction Rasters",
                                                            direction="Input",
                                                            parameterType="Optional",
                                                            datatype="DERasterDataset",

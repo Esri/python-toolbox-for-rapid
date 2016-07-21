@@ -23,8 +23,8 @@ class StreamNetworktoRAPID(object):
 
     def getParameterInfo(self):
         """Define parameter definitions"""
-        rapid_out_folder = arcpy.Parameter(name = 'RAPID Output Folder',
-                                           displayName = 'rapid_out_folder',
+        rapid_out_folder = arcpy.Parameter(name = 'rapid_out_folder',
+                                           displayName = 'RAPID Output Folder',
                                            datatype = 'DEFolder',
                                            parameterType = 'Required',
                                            direction = 'Input')
@@ -64,7 +64,7 @@ class StreamNetworktoRAPID(object):
                                                  
         length_field_DrainageLine.parameterDependencies = ["input_Drainage_Lines"]
         length_field_DrainageLine.filter.list = ['Double']
-        length_field_DrainageLine.value = "SLength"
+        length_field_DrainageLine.value = "LENGTHKM"
 
         Slope_field_DrainageLine = arcpy.Parameter(name="Slope_field_DrainageLine",
                                                    displayName="Slope Field",
@@ -94,8 +94,8 @@ class StreamNetworktoRAPID(object):
         Stream_ID_Catchments.filter.list = ['Short', 'Long']
         Stream_ID_Catchments.value = "DrainLnID"
         
-        Input_Reservoir = arcpy.Parameter(name = 'Reservoir Input',
-                                           displayName = 'Input_Reservoirs',
+        Input_Reservoir = arcpy.Parameter(name = 'Input_Reservoir',
+                                           displayName = 'Input Reservoir Layer',
                                            datatype = 'GPFeatureLayer',
                                            parameterType = 'Optional',
                                            direction = 'Input')

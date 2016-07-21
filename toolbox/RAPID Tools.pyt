@@ -26,7 +26,7 @@ from CreateDischargeTable import CreateDischargeTable
 from CreateDischargeMap import CreateDischargeMap
 from FlowlineToPoint import FlowlineToPoint
 from HydroSHEDStoStreamNetwork import HydroSHEDStoStreamNetwork
-from CreateMuskingumXfile import CreateMuskingumXfile
+from CreateMuskingumXFile import CreateMuskingumXFile
 from PublishDischargeMap import PublishDischargeMap
 from StreamNetworktoRAPID import StreamNetworktoRAPID
 from StreamNetworktoSPT import StreamNetworktoSPT
@@ -49,7 +49,7 @@ class Toolbox(object):
                       CreateMuskingumParameterFiles,
                       CreateMuskingumKFile,
                       CreateMuskingumKfacFile,
-                      CreateMuskingumXfile, 
+                      CreateMuskingumXFile, 
                       CreateRivIDGageFile, 
                       CreateSubsetFile,
                       CreateWeightTableFromWRFGeogrid,

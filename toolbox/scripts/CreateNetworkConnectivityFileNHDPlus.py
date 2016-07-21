@@ -18,7 +18,7 @@ import os
 class CreateNetworkConnectivityFileNHDPlus(object):
     def __init__(self):
         """Define the tool (tool name is the name of the class)."""
-        self.label = "Create Connectivity File for NHDPlus network"
+        self.label = "Create Connectivity File for NHDPlus"
         self.description = "Creates Network Connectivity input CSV file for RAPID \
         based on the Drainage Line feature class with COMID, FROMNODE, TONODE, and DIVERGENCE fields"
         self.canRunInBackground = False

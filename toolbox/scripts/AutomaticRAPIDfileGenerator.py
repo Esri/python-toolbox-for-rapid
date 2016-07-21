@@ -9,18 +9,14 @@
  History:     Initial coding - 06/29/2016, version 1.0
  Updated:     Version 1.1, 06/29/2016, initial coding
 -------------------------------------------------------------------------------'''
-import ArcHydroTools
 import arcpy
-import csv
 import math
 import os
-import time
-
 
 class AutomaticRAPIDfileGenerator(object):
     def __init__(self):
         """Define the tool (tool name is the name of the class)."""
-        self.label = "Automatic RAPID file Generator"
+        self.label = "Automatic RAPID File Generator"
         self.description = ("Batch processes HydroSHEDS data to RAPID files")
         self.canRunInBackground = False
         self.category = "Workflows"
@@ -58,19 +54,19 @@ class AutomaticRAPIDfileGenerator(object):
                                               datatype="DEFolder")
 
         Number_of_cells_to_define_stream = arcpy.Parameter(name="Number_of_cells_to_define_stream",
-                                                           displayName="Number of cells to define stream",
+                                                           displayName="Number of Cells to Define Stream",
                                                            direction="Input",
                                                            parameterType="Required",
                                                            datatype="GPLong")
 
         Buffer_Option = arcpy.Parameter(name="Buffer_Option",
-                                        displayName="Added 20 kilometer Buffer",
+                                        displayName="Add 20 Kilometer Buffer",
                                         direction="Input",
                                         parameterType="Optional",
                                         datatype="GPBoolean")                                                           
                                                            
-        Input_Reservoir = arcpy.Parameter(name = 'Reservoir Input',
-                                           displayName = 'Input_Reservoirs',
+        Input_Reservoir = arcpy.Parameter(name = 'Input_Reservoir',
+                                           displayName = 'Input Reservoir Layer',
                                            datatype = 'GPFeatureLayer',
                                            parameterType = 'Optional',
                                            direction = 'Input')

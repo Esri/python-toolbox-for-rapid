@@ -1,6 +1,6 @@
 '''-------------------------------------------------------------------------------
- Tool Name:   CreateMuskingumXfile
- Source Name: CreateMuskingumXfile.py
+ Tool Name:   CreateMuskingumXFile
+ Source Name: CreateMuskingumXFile.py
  Version:     ArcGIS 10.3
  License:     Apache 2.0
  Author:      Andrew Dohmann and Alan Snow
@@ -14,18 +14,18 @@ import csv
 import os
 import time
 
-class CreateMuskingumXfile(object):
+class CreateMuskingumXFile(object):
     def __init__(self):
         """Define the tool (tool name is the name of the class)."""
-        self.label = "Create Muskingum X file"
+        self.label = "Create Muskingum X File"
         self.description = ("Creates the Muskingum X file for RAPID")
         self.canRunInBackground = False
         self.category = "Calibration"
 
     def getParameterInfo(self):
         """Define parameter definitions"""
-        rapid_out_folder = arcpy.Parameter(name = 'RAPID Output Folder',
-                                           displayName = 'rapid_out_folder',
+        rapid_out_folder = arcpy.Parameter(name = 'rapid_out_folder',
+                                           displayName = 'RAPID Output Folder',
                                            datatype = 'DEFolder',
                                            parameterType = 'Required',
                                            direction = 'Input')
@@ -54,8 +54,8 @@ class CreateMuskingumXfile(object):
                                     datatype="GPDouble")
         Default_x.value = "0.3"
          
-        Input_Reservoir = arcpy.Parameter(name = 'Reservoir Input',
-                                           displayName = 'Input_Reservoirs',
+        Input_Reservoir = arcpy.Parameter(name = 'Input_Reservoir',
+                                           displayName = 'Input Reservoir Layer',
                                            datatype = 'GPFeatureLayer',
                                            parameterType = 'Optional',
                                            direction = 'Input')
