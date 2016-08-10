@@ -199,14 +199,16 @@ class AutomaticRAPIDfileGenerator(object):
                 
                 #generate stream network
                 regionfolder = os.path.join(rapid_file_Location, regionID)
-                arcpy.HydroSHEDStoStreamNetwork_RAPIDTools(regionID, regionfolder, basin_feat, Number_of_cells_to_define_stream, UTM_Zone, Buffer_Option, DEMmulivalue, FlowDirmulivalue)
-                Output_DrainageLine = os.path.join(os.path.join(regionfolder, os.path.join("%s.gdb" % regionID, "Layers")), "DrainageLine")
-                Output_Catchment = os.path.join(os.path.join(regionfolder, os.path.join("%s.gdb" % regionID, "Layers")), "Catchment")
+                arcpy.HydroSHEDStoStreamNetwork_RAPIDTools(regionID, regionfolder, basin_feat, Number_of_cells_to_define_stream, 
+                                                           UTM_Zone, Buffer_Option, DEMmulivalue, FlowDirmulivalue)
+                Output_DrainageLine = os.path.join(regionfolder, "{0}.gdb".format(regionID), "Layers", "DrainageLine")
+                Output_Catchment = os.path.join(regionfolder, "{0}.gdb".format(regionID), "Layers", "Catchment")
                 arcpy.AddMessage(Output_DrainageLine)
 
                 #generate RAPID files
                 RAPIDregionfolder = arcpy.CreateFolder_management(regionfolder, "RAPID_Files")
-                arcpy.StreamNetworktoRAPID_RAPIDTools(RAPIDregionfolder, Output_DrainageLine, "HydroID", "NextDownID", "SLength", "Avg_Slope", Output_Catchment, "DrainLnID", Input_Reservoir) 
+                arcpy.StreamNetworktoRAPID_RAPIDTools(RAPIDregionfolder, Output_DrainageLine, "HydroID", "NextDownID", "SLength", 
+                                                      "Avg_Slope", Output_Catchment, "DrainLnID", Input_Reservoir) 
                 
                 #Generate SPT files
                 STPregionfolder = arcpy.CreateFolder_management(regionfolder, "SPT_Files")
