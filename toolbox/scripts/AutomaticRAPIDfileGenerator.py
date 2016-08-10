@@ -4,8 +4,8 @@
  Version:     ArcGIS 10.3
  License:     Apache 2.0
  Author:      Andrew Dohmann
- Updated by:  Andrew Dohmann
- Description: Produces 
+ Updated by:  Andrew Dohmann and Alan Snow
+ Description: Batch processes HydroSHEDS data to RAPID files 
  History:     Initial coding - 06/29/2016, version 1.0
  Updated:     Version 1.1, 06/29/2016, initial coding
 -------------------------------------------------------------------------------'''
@@ -30,7 +30,7 @@ class AutomaticRAPIDfileGenerator(object):
                                               datatype="DEFolder")
                                             
         Watershed_Boundaries_FC = arcpy.Parameter(name="Watershed_Boundaries_FC",
-                                                  displayName="Watershed Boundaries FC",
+                                                  displayName="Watershed Boundaries Feature Class",
                                                   direction="Input",
                                                   parameterType="Required",
                                                   datatype="GPFeatureLayer")
@@ -130,11 +130,13 @@ class AutomaticRAPIDfileGenerator(object):
             #Determine what data needs to be downloaded
             #get geometry feature of watershed
             basin_feat = row.getValue(shapeName)
+            
             #bounds of Hydrosheds data needed
             newxmin = int(math.floor(basin_feat.extent.XMin/5.0) * 5)
             newxmax = int(math.ceil(basin_feat.extent.XMax/5.0) * 5)
             newymin = int(math.floor(basin_feat.extent.YMin/5.0) * 5)
             newymax = int(math.ceil(basin_feat.extent.YMax/5.0) * 5)
+            
             #create list of files to download
             xtiles = ((newxmax - newxmin)/5) 
             ytiles = ((newymax-newymin)/5)
@@ -159,13 +161,10 @@ class AutomaticRAPIDfileGenerator(object):
                         latitude = "s"
                         northing = str(-north).zfill(2)  #pads with zeros
                     DEMfile = "%s%s%s%s_con.bil" % (latitude, northing, longitude, easting)
-                    DEMlocationName = os.path.join(DEM_Location, DEMfile)
-                    DEMfile_names.append(DEMlocationName)
+                    DEMfile_names.append(os.path.join(DEM_Location, DEMfile))
                     if FlowDir_Location:
                         flowdirfile ="%s%s%s%s_dir.grid" % (latitude, northing, longitude, easting)
-                        FlowDirlocationName = os.path.join(FlowDir_Location, flowdirfile) 
-                        if arcpy.Exists(FlowDirlocationName):
-                            FlowDirfile_names.append(FlowDirlocationName)
+                        FlowDirfile_names.append(os.path.join(FlowDir_Location, flowdirfile))
                     yindex = yindex + 1
                 xindex = xindex + 1
                 yindex = 0 
@@ -177,7 +176,10 @@ class AutomaticRAPIDfileGenerator(object):
             for DEMfile_index in xrange(len(DEMfile_names)):
                 if (arcpy.Exists(DEMfile_names[DEMfile_index])):
                     if FlowDir_Location:
-                        existing_FlowDir_files.append(FlowDirfile_names[DEMfile_index])
+                        if arcpy.Exists(FlowDirfile_names[DEMfile_index])
+                            existing_FlowDir_files.append(FlowDirfile_names[DEMfile_index])
+                        else:
+                            arcpy.AddError("Flow direction file not found: {0}".format(FlowDirfile_names[DEMfile_index]))
                     existing_DEM_files.append(DEMfile_names[DEMfile_index])
                 else:
                     arcpy.AddMessage("WARNING: Could not find {} ...".format(DEMfile_names[DEMfile_index]))
