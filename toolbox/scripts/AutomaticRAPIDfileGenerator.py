@@ -24,23 +24,18 @@ class AutomaticRAPIDfileGenerator(object):
     def getParameterInfo(self):
         """Define parameter definitions"""
         rapid_file_Location = arcpy.Parameter(name="rapid_file_Location",
-                                              displayName="RAPID File Location",
+                                              displayName="RAPID Output File Location",
                                               direction="Input",
                                               parameterType="Required",
                                               datatype="DEFolder")
                                             
-        Watershed_Boundaries = arcpy.Parameter(name="Watershed_Boundaries",
-                                               displayName="Watershed Boundaries",
-                                               direction="Input",
-                                               parameterType="Required",
-                                               datatype="GPFeatureLayer")
-                                               
         Watershed_Boundaries_FC = arcpy.Parameter(name="Watershed_Boundaries_FC",
                                                   displayName="Watershed Boundaries FC",
                                                   direction="Input",
                                                   parameterType="Required",
                                                   datatype="GPFeatureLayer")
-                                               
+        Watershed_Boundaries_FC.filter.list = ['Polygon'] 
+        
         Input_DEM_Location = arcpy.Parameter(name="Input_DEM_Location",
                                              displayName="Input DEM Location",
                                              direction="Input",
@@ -73,7 +68,7 @@ class AutomaticRAPIDfileGenerator(object):
         Input_Reservoir.filter.list = ['Polygon']
 
                                                           
-        params = [rapid_file_Location, Watershed_Boundaries, Watershed_Boundaries_FC, Input_DEM_Location,
+        params = [rapid_file_Location, Watershed_Boundaries_FC, Input_DEM_Location,
                   Input_Flow_Location, Number_of_cells_to_define_stream,
                   Buffer_Option, Input_Reservoir]
 
@@ -107,72 +102,39 @@ class AutomaticRAPIDfileGenerator(object):
         
         #Parameters
         rapid_file_Location = parameters[0].valueAsText
-        Watershed_Boundaries = parameters[1].valueAsText
-        Watershed_Boundaries_FC = parameters[2].valueAsText
-        DEM_Location = parameters[3].valueAsText
-        FlowDir_Location = parameters[4].valueAsText
-        Number_of_cells_to_define_stream = parameters[5].valueAsText
-        Buffer_Option = parameters[6].valueAsText
-        Input_Reservoir = parameters[7].valueAsText
+        Watershed_Boundaries_FC = parameters[1].valueAsText
+        DEM_Location = parameters[2].valueAsText
+        FlowDir_Location = parameters[3].valueAsText
+        Number_of_cells_to_define_stream = parameters[4].valueAsText
+        Buffer_Option = parameters[5].valueAsText
+        Input_Reservoir = parameters[6].valueAsText
         
-        #make boundary a feature class
-        featureBasins = os.path.join(Watershed_Boundaries, "featureBasins")
-        arcpy.MakeFeatureLayer_management(Watershed_Boundaries, featureBasins)
-      
         #add utm coordinate information
         arcpy.AddField_management(Watershed_Boundaries_FC, "UTM_Zones", "TEXT", "", "", "600", "", "NULLABLE", "NON_REQUIRED", "")
         arcpy.CalculateUTMZone_cartography(Watershed_Boundaries_FC, "UTM_Zones")
-        AllCoordinates = []
-        rows = arcpy.UpdateCursor(Watershed_Boundaries_FC)
-        for row in rows:
-            UTM = row.getValue("UTM_Zones")
-            AllCoordinates.append(UTM)
-        del row
-        del rows
-       
-        #Create files with unique name
-        AllRegionNames = []
-        AllRegionHYBAS_ID = []
-        AllRegionNicknames = []
-        rows = arcpy.UpdateCursor(Watershed_Boundaries)
-        for row in rows:
-            HYBAS_ID = row.getValue("HYBAS_ID")
-            AllRegionHYBAS_ID.append(HYBAS_ID)
-            RegionName = row.getValue("RegionName")
-            AllRegionNicknames.append(RegionName)
-            regionID = str(int(HYBAS_ID)) + "-" + str(RegionName)
-            regionfolder = arcpy.CreateFolder_management(rapid_file_Location, regionID)
-            AllRegionNames.append(regionID)
-            '''
-            utm = row.getValue("UTM_Zones")
-            utmZones.append(utm)
-            '''
-        del row
-        del rows
-
-        number_of_basins = len(AllRegionNames)
-        index = 0
+ 
         script_directory = os.path.dirname(__file__)
         arcpy.ImportToolbox(os.path.join(os.path.dirname(script_directory), "RAPID Tools.pyt"))
         
-        while index < number_of_basins:
-            #select basin 
-            basins = os.path.join("in_memory", "basins")
-            basinclip = arcpy.SelectLayerByAttribute_management(featureBasins, "NEW_SELECTION", '"FID" = %d' %index) 
-            arcpy.Clip_analysis(basinclip, basinclip, basins) 
+        shapeName = arcpy.Describe(Watershed_Boundaries_FC).shapeFieldName
+        rows = arcpy.SearchCursor(Watershed_Boundaries_FC)
+        for row in rows:
+            UTM_Zone = row.getValue("UTM_Zones")
+            HYBAS_ID = row.getValue("HYBAS_ID")
+            RegionName = row.getValue("RegionName").replace(" ", "_").lower()
+            regionID = str(int(HYBAS_ID)) + "-" + str(RegionName)
+            
+            arcpy.AddMessage("Running process for {}".format(regionID))
+            arcpy.AddMessage("Searching for DEM/Flow Direction files ...")
 
             #Determine what data needs to be downloaded
-            desc = arcpy.Describe(basins)
-            #rectangular bounds of watershed
-            xmin = desc.extent.XMin
-            xmax = desc.extent.XMax
-            ymin = desc.extent.YMin
-            ymax = desc.extent.YMax
+            #get geometry feature of watershed
+            basin_feat = row.getValue(shapeName)
             #bounds of Hydrosheds data needed
-            newxmin = int(math.floor(xmin/5.0) * 5)
-            newxmax = int(math.ceil(xmax/5.0) * 5)
-            newymin = int(math.floor(ymin/5.0) * 5)
-            newymax = int(math.ceil(ymax/5.0) * 5)
+            newxmin = int(math.floor(basin_feat.extent.XMin/5.0) * 5)
+            newxmax = int(math.ceil(basin_feat.extent.XMax/5.0) * 5)
+            newymin = int(math.floor(basin_feat.extent.YMin/5.0) * 5)
+            newymax = int(math.ceil(basin_feat.extent.YMax/5.0) * 5)
             #create list of files to download
             xtiles = ((newxmax - newxmin)/5) 
             ytiles = ((newymax-newymin)/5)
@@ -196,11 +158,11 @@ class AutomaticRAPIDfileGenerator(object):
                     else:
                         latitude = "s"
                         northing = str(-north).zfill(2)  #pads with zeros
-                    DEMfile = "%s%s%s%s_con.bil" %(latitude, northing, longitude, easting)
+                    DEMfile = "%s%s%s%s_con.bil" % (latitude, northing, longitude, easting)
                     DEMlocationName = os.path.join(DEM_Location, DEMfile)
                     DEMfile_names.append(DEMlocationName)
                     if FlowDir_Location:
-                        flowdirfile ="%s%s%s%s_dir.grid" %(latitude, northing, longitude, easting)
+                        flowdirfile ="%s%s%s%s_dir.grid" % (latitude, northing, longitude, easting)
                         FlowDirlocationName = os.path.join(FlowDir_Location, flowdirfile) 
                         if arcpy.Exists(FlowDirlocationName):
                             FlowDirfile_names.append(FlowDirlocationName)
@@ -212,41 +174,46 @@ class AutomaticRAPIDfileGenerator(object):
             file_exist_index = 0
             existing_DEM_files = []
             existing_FlowDir_files = []
-            while file_exist_index < len(DEMfile_names):
-                if (arcpy.Exists(DEMfile_names[file_exist_index])):
+            for DEMfile_index in xrange(len(DEMfile_names)):
+                if (arcpy.Exists(DEMfile_names[DEMfile_index])):
                     if FlowDir_Location:
-                        existing_FlowDir_files.append(FlowDirfile_names[file_exist_index])
-                    existing_DEM_files.append(DEMfile_names[file_exist_index])
-                file_exist_index = file_exist_index + 1    
+                        existing_FlowDir_files.append(FlowDirfile_names[DEMfile_index])
+                    existing_DEM_files.append(DEMfile_names[DEMfile_index])
+                else:
+                    arcpy.AddMessage("WARNING: Could not find {} ...".format(DEMfile_names[DEMfile_index]))
+            DEMfile_names = []
+            FlowDirfile_names = []
             
             #Create multivalue input 
-            DEMmulivalue = ";".join(existing_DEM_files )
+            DEMmulivalue = ";".join(existing_DEM_files)
             if FlowDir_Location:
                 FlowDirmulivalue = ";".join(existing_FlowDir_files )
             else:
                 FlowDirmulivalue = ""
             arcpy.AddMessage(DEMmulivalue)
             arcpy.AddMessage(FlowDirmulivalue)
-         
-            #generate stream network
-            regionfolder = os.path.join(rapid_file_Location, AllRegionNames[index])
-            regionID = AllRegionNames[index]
-            arcpy.HydroSHEDStoStreamNetwork_RAPIDTools(regionID, regionfolder, basins, Number_of_cells_to_define_stream, AllCoordinates[index], Buffer_Option, DEMmulivalue, FlowDirmulivalue)
-            Output_DrainageLine = os.path.join(os.path.join(regionfolder, os.path.join("%s.gdb" % regionID, "Layers")), "DrainageLine")
-            Output_Catchment = os.path.join(os.path.join(regionfolder, os.path.join("%s.gdb" % regionID, "Layers")), "Catchment")
-            arcpy.AddMessage(Output_DrainageLine)
+            
+            if DEMmulivalue:
+                #create folder for file output
+                regionfolder = arcpy.CreateFolder_management(rapid_file_Location, regionID)
+                
+                #generate stream network
+                regionfolder = os.path.join(rapid_file_Location, regionID)
+                arcpy.HydroSHEDStoStreamNetwork_RAPIDTools(regionID, regionfolder, basin_feat, Number_of_cells_to_define_stream, UTM_Zone, Buffer_Option, DEMmulivalue, FlowDirmulivalue)
+                Output_DrainageLine = os.path.join(os.path.join(regionfolder, os.path.join("%s.gdb" % regionID, "Layers")), "DrainageLine")
+                Output_Catchment = os.path.join(os.path.join(regionfolder, os.path.join("%s.gdb" % regionID, "Layers")), "Catchment")
+                arcpy.AddMessage(Output_DrainageLine)
 
-            #generate RAPID files
-            RAPIDregionfolder = arcpy.CreateFolder_management(regionfolder, ("RAPID_Files-%s" % regionID))
-            arcpy.StreamNetworktoRAPID_RAPIDTools(RAPIDregionfolder, Output_DrainageLine, "HydroID", "NextDownID", "SLength", "Avg_Slope", Output_Catchment, "DrainLnID", Input_Reservoir) 
-            
-            #Generate SPT files
-            STPregionfolder = arcpy.CreateFolder_management(regionfolder, ("STP_Files_%s" % regionID))
-            arcpy.StreamNetworktoSPT_RAPIDTools(Output_DrainageLine, AllRegionHYBAS_ID[index], AllRegionNicknames[index], "", "", Output_Catchment, STPregionfolder) 
-            
-            #delete clip
-            arcpy.Delete_management(basins)
-            
-            index = index + 1
+                #generate RAPID files
+                RAPIDregionfolder = arcpy.CreateFolder_management(regionfolder, "RAPID_Files")
+                arcpy.StreamNetworktoRAPID_RAPIDTools(RAPIDregionfolder, Output_DrainageLine, "HydroID", "NextDownID", "SLength", "Avg_Slope", Output_Catchment, "DrainLnID", Input_Reservoir) 
+                
+                #Generate SPT files
+                STPregionfolder = arcpy.CreateFolder_management(regionfolder, "SPT_Files")
+                arcpy.StreamNetworktoSPT_RAPIDTools(Output_DrainageLine, HYBAS_ID, RegionName, "", "", Output_Catchment, STPregionfolder) 
+            else:
+                arcpy.AddMessage("No DEM files found. Skipping ...")
+        del row
+        del rows
         
         return
