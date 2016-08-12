@@ -176,7 +176,7 @@ class AutomaticRAPIDfileGenerator(object):
             for DEMfile_index in xrange(len(DEMfile_names)):
                 if (arcpy.Exists(DEMfile_names[DEMfile_index])):
                     if FlowDir_Location:
-                        if arcpy.Exists(FlowDirfile_names[DEMfile_index])
+                        if arcpy.Exists(FlowDirfile_names[DEMfile_index]):
                             existing_FlowDir_files.append(FlowDirfile_names[DEMfile_index])
                         else:
                             arcpy.AddError("Flow direction file not found: {0}".format(FlowDirfile_names[DEMfile_index]))
