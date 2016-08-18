@@ -25,7 +25,7 @@ from CreateWeightTableFromLISRunoff import CreateWeightTableFromLISRunoff
 from CreateDischargeTable import CreateDischargeTable
 from CreateDischargeMap import CreateDischargeMap
 from FlowlineToPoint import FlowlineToPoint
-from HydroSHEDStoStreamNetwork import HydroSHEDStoStreamNetwork
+from DEMtoStreamNetwork import DEMtoStreamNetwork
 from CreateMuskingumXFile import CreateMuskingumXFile
 from PublishDischargeMap import PublishDischargeMap
 from StreamNetworktoRAPID import StreamNetworktoRAPID
@@ -61,7 +61,7 @@ class Toolbox(object):
                       CreateDischargeTable,
                       CreateDischargeMap,
                       FlowlineToPoint,
-                      HydroSHEDStoStreamNetwork,
+                      DEMtoStreamNetwork,
                       PublishDischargeMap,
                       StreamNetworktoRAPID,
                       StreamNetworktoSPT,

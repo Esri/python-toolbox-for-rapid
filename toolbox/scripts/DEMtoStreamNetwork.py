@@ -1,6 +1,6 @@
 '''-------------------------------------------------------------------------------
- Tool Name:   HydroSHEDStoStreamNetwork
- Source Name: HydroSHEDStoStreamNetwork.py
+ Tool Name:   DEMtoStreamNetwork
+ Source Name: DEMtoStreamNetwork.py
  Version:     ArcGIS 10.3
  License:     Apache 2.0
  Author:      Andrew Dohmann and Alan Snow
@@ -13,11 +13,11 @@ import ArcHydroTools
 import arcpy
 import os
 
-class HydroSHEDStoStreamNetwork(object):
+class DEMtoStreamNetwork(object):
     def __init__(self):
         """Define the tool (tool name is the name of the class)."""
-        self.label = "HydroSHEDS to Stream Network"
-        self.description = ("Processes DEM data to stream network")
+        self.label = "DEM to Stream Network"
+        self.description = ("Processes DEM data to generate a stream network")
         self.canRunInBackground = False
         self.category = "Workflows"
 
@@ -53,6 +53,12 @@ class HydroSHEDStoStreamNetwork(object):
                                                    parameterType="Required",
                                                    datatype="GPCoordinateSystem")
         
+        Fill_Sinks_Option = arcpy.Parameter(name="Fill_Sinks_Option",
+                                            displayName="Run Fill Sinks",
+                                            direction="Input",
+                                            parameterType="Optional",
+                                            datatype="GPBoolean")
+
         Buffer_Option = arcpy.Parameter(name="Buffer_Option",
                                         displayName="Add 20 kilometer Buffer",
                                         direction="Input",
@@ -82,7 +88,8 @@ class HydroSHEDStoStreamNetwork(object):
                                                            multiValue=True)
                                                           
         params = [File_GDB_Name, File_GDB_Location, Watershed_Boundary,
-                  Number_of_cells_to_define_stream, Output_Coordinate_System, Buffer_Option,
+                  Number_of_cells_to_define_stream, Output_Coordinate_System, 
+                  Fill_Sinks_Option, Buffer_Option,
                   Input_DEM_Rasters, Watershed_Flow_Direction_Rasters]
 
         return params
@@ -120,9 +127,10 @@ class HydroSHEDStoStreamNetwork(object):
         Watershed_Boundary = parameters[2].valueAsText
         Number_of_cells_to_define_stream = parameters[3].valueAsText
         Output_Coordinate_System = parameters[4].valueAsText
-        Buffer_Option = parameters[5].valueAsText
-        Input_DEM_Rasters = parameters[6].valueAsText
-        Watershed_Flow_Direction_Rasters = parameters[7].valueAsText  
+        Fill_Sinks_Option = parameters[5].value
+        Buffer_Option = parameters[6].value
+        Input_DEM_Rasters = parameters[7].valueAsText
+        Watershed_Flow_Direction_Rasters = parameters[8].valueAsText  
         
         # Local variables:
         Path_to_GDB = os.path.join(File_GDB_Location, File_GDB_Name)
@@ -149,7 +157,7 @@ class HydroSHEDStoStreamNetwork(object):
         arcpy.CreateFeatureDataset_management(Path_to_GDB, Dataset, Coordinate_System)
 
         # Process: Optional Buffer
-        if str(Buffer_Option) == 'true':
+        if Buffer_Option:
             arcpy.Buffer_analysis(Watershed_Boundary, Watershed_Buffer, Buffer_Distance, 
                                   "FULL", "ROUND", "NONE", "", "PLANAR")
         else:
@@ -163,6 +171,17 @@ class HydroSHEDStoStreamNetwork(object):
         arcpy.gp.ExtractByMask_sa(Output_Mosaic_Elevation_DEM, Watershed_Buffer, Output_Elevation_DEM)
         arcpy.Delete_management(Output_Mosaic_Elevation_DEM)
 
+        
+        if Fill_Sinks_Option:
+            Output_Fill_Sinks_Elevation_DEM = os.path.join(Path_to_GDB, "Elevation_DEM_Filled")
+
+            #run fill sinks
+            ArcHydroTools.FillSinks(Output_Elevation_DEM, Output_Fill_Sinks_Elevation_DEM)
+            
+            #delete old DEM and replace with sink filled DEM
+            arcpy.Delete_management(Output_Elevation_DEM)
+            arcpy.Rename_management(Output_Fill_Sinks_Elevation_DEM, Output_Elevation_DEM)
+            
         if Watershed_Flow_Direction_Rasters:
             # Process: Mosaic To New Raster for Flow Direction
             arcpy.MosaicToNewRaster_management(Watershed_Flow_Direction_Rasters, Path_to_GDB, "Mosaic_Flow_Direction", 
@@ -246,5 +265,6 @@ class HydroSHEDStoStreamNetwork(object):
         arcpy.Delete_management(Output_DrainageLine)
         arcpy.Project_management(Output_Projected_DrainageLine, Output_DrainageLine, Coordinate_System)
         arcpy.Delete_management(Output_Projected_DrainageLine)
-        arcpy.Delete_management(Watershed_Buffer)
+        if Watershed_Buffer != Watershed_Boundary:
+            arcpy.Delete_management(Watershed_Buffer)
         return(Output_DrainageLine, Output_Catchment)
