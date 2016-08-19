@@ -5,7 +5,7 @@
  Author:      Alan Dee Snow
  Description: Creates RAPID inflow file based on 2D Latitude and Longitude runoff output
               and the weight table previously created.
- History:     Initial coding - 9/30/2015, version 1.0
+ History:     Initial coding - 8/19/2016, version 1.0
  ------------------------------------------------------------------------------'''
 import os
 import arcpy
