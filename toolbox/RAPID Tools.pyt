@@ -21,7 +21,7 @@ from CreateInflowFileFromWRFHydroRunoff import CreateInflowFileFromWRFHydroRunof
 from CreateWeightTableFromECMWFRunoff import CreateWeightTableFromECMWFRunoff
 from CreateInflowFileFromECMWFRunoff import CreateInflowFileFromECMWFRunoff
 from CreateWeightTableFromLDASRunoff import CreateWeightTableFromLDASRunoff
-from CreateWeightTableFromLISRunoff import CreateWeightTableFromLISRunoff
+from CreateWeightTableFrom2DLatLonRunoff import CreateWeightTableFrom2DLatLonRunoff
 from CreateDischargeTable import CreateDischargeTable
 from CreateDischargeMap import CreateDischargeMap
 from FlowlineToPoint import FlowlineToPoint
@@ -57,7 +57,7 @@ class Toolbox(object):
                       CreateWeightTableFromECMWFRunoff,
                       CreateInflowFileFromECMWFRunoff,
                       CreateWeightTableFromLDASRunoff,
-                      CreateWeightTableFromLISRunoff,
+                      CreateWeightTableFrom2DLatLonRunoff,
                       CreateDischargeTable,
                       CreateDischargeMap,
                       FlowlineToPoint,

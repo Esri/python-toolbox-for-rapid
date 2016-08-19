@@ -1,9 +1,9 @@
 '''-------------------------------------------------------------------------------
- Tool Name:   CreateWeightTableFromLISRunoff
- Source Name: CreateWeightTableFromLISRunoff.py
+ Tool Name:   CreateWeightTableFrom2DLatLonRunoff
+ Source Name: CreateWeightTableFrom2DLatLonRunoff.py
  Version:     ArcGIS 10.3
  Author:      Alan Dee Snow
- Description: Creates RAPID inflow file based on LDAS runoff output
+ Description: Creates RAPID inflow file based on 2D Latitude and Longitude runoff output
               and the weight table previously created.
  History:     Initial coding - 9/30/2015, version 1.0
  ------------------------------------------------------------------------------'''
@@ -13,17 +13,13 @@ import netCDF4 as NET
 import numpy as NUM
 import csv
 
-class CreateWeightTableFromLISRunoff(object):
+class CreateWeightTableFrom2DLatLonRunoff(object):
     def __init__(self):
         """Define the tool (tool name is the name of the class)."""
-        self.label = "Create Weight Table From LIS Runoff"
-        self.description = ("Creates weight table based on the LIS Runoff file" +
+        self.label = "Create Weight Table From 2D Lat Lon LSM Grid Runoff"
+        self.description = ("Creates RAPID inflow file based on 2D Latitude and Longitude runoff output" +
                             " and catchment features")
         self.canRunInBackground = False
-        """
-        self.dims_oi = ['east_west', 'north_south'] 
-        self.vars_oi = ["SSRUN_GDS0_SFC_ave1h", "BGRUN_GDS0_SFC_ave1h", 'lat', 'lon']
-        """
         self.errorMessages = ["Incorrect dimensions in the input LIS runoff file.",
                               "Incorrect variables in the input LIS runoff file."]
         self.category = "Preprocessing"
@@ -33,28 +29,32 @@ class CreateWeightTableFromLISRunoff(object):
         """Check the necessary dimensions and variables in the input netcdf data"""
         return
 
-    def createPolygon(self, lat, lon, extent, out_polygons, scratchWorkspace):
+    def createPolygon(self, extent, out_polygons, scratchWorkspace):
         """Create a Thiessen polygon feature class from numpy.ndarray lat and lon
            Each polygon represents the area described by the center point
         """
-        buffer = 2 * max(abs(lat[0]-lat[1]),abs(lon[0] - lon[1]))
-        # Spatial reference: Cylindrical Equidistant Projection Grid
-        #sr = arcpy.SpatialReference(54002)
+        lsm_dx = NUM.max(NUM.absolute(NUM.diff(self.lsm_lon_array)))
+        lsm_dy = NUM.max(NUM.absolute(NUM.diff(self.lsm_lat_array, axis=0)))
+        
+        lsm_lat_indices_from_lat, lsm_lon_indices_from_lat = NUM.where((self.lsm_lat_array >= (extent.YMin - 2*lsm_dy)) & (self.lsm_lat_array <= (extent.YMax + 2*lsm_dy)))
+        lsm_lat_indices_from_lon, lsm_lon_indices_from_lon = NUM.where((self.lsm_lon_array >= (extent.XMin - 2*lsm_dx)) & (self.lsm_lon_array <= (extent.XMax + 2*lsm_dx)))
+
+        lsm_lat_indices = NUM.intersect1d(lsm_lat_indices_from_lat, lsm_lat_indices_from_lon)
+        lsm_lon_indices = NUM.intersect1d(lsm_lon_indices_from_lat, lsm_lon_indices_from_lon)
+
+        lsm_lat_list = self.lsm_lat_array[lsm_lat_indices,:][:,lsm_lon_indices]
+        lsm_lon_list = self.lsm_lon_array[lsm_lat_indices,:][:,lsm_lon_indices]
+
+        # Spatial reference
         sr = arcpy.SpatialReference(4326) #CGS_WGS_1984
 
-        # Extract the lat and lon within buffered extent (buffer with 2* interval degree)
-        lat0 = lat[(lat >= (extent.YMin - buffer)) & (lat <= (extent.YMax + buffer))]
-        lon0 = lon[(lon >= (extent.XMin - buffer)) & (lon <= (extent.XMax + buffer))]
-
         # Create a list of geographic coordinate pairs
-        count_lon = len(lon0)
-        count_lat = len(lat0)
         pointGeometryList = []
-        for i in range(0,count_lon):
-            for j in range(0, count_lat):
+        for i in range(len(lsm_lat_indices)):
+            for j in range(len(lsm_lon_indices)):
                 point = arcpy.Point()
-                point.X = float(lon0[i])
-                point.Y = float(lat0[j])
+                point.X = float(lsm_lon_list[i][j])
+                point.Y = float(lsm_lat_list[i][j])
                 pointGeometry = arcpy.PointGeometry(point, sr)
                 pointGeometryList.append(pointGeometry)
 
@@ -83,86 +83,57 @@ class CreateWeightTableFromLISRunoff(object):
 
     def getParameterInfo(self):
         """Define parameter definitions"""
-        param0 = arcpy.Parameter(name = "in_LIS_runoff_file",
-                                 displayName = "Input LIS Runoff File",
+        param0 = arcpy.Parameter(name = "in_runoff_file",
+                                 displayName = "Input Runoff File",
                                  direction = "Input",
                                  parameterType = "Required",
                                  datatype = "DEFile")
 
-        param1 = arcpy.Parameter(name = "in_LIS_lat_variable",
-                                 displayName = "LIS File Latitude Variable [-90,90]",
+        param1 = arcpy.Parameter(name = "in_lat_variable",
+                                 displayName = "2D Latitude Variable [-90,90]",
                                  direction = "Input",
                                  parameterType = "Required",
                                  datatype = "GPString")
         param1.filter.list = []
 
-        param2 = arcpy.Parameter(name = "in_LIS_lon_variable",
-                                 displayName = "LIS File Longitude Variable [-180,180]",
+        param2 = arcpy.Parameter(name = "in_lon_variable",
+                                 displayName = "2D Longitude Variable [-180,180]",
                                  direction = "Input",
                                  parameterType = "Required",
                                  datatype = "GPString")
         param2.filter.list = []
 
-        param3 = arcpy.Parameter(name = "in_LIS_lat_dimension",
-                                 displayName = "LIS File Latitude Dimension",
-                                 direction = "Input",
-                                 parameterType = "Required",
-                                 datatype = "GPString")
-        param3.filter.list = []
-
-        param4 = arcpy.Parameter(name = "in_LIS_lon_dimension",
-                                 displayName = "LIS File Longitude Dimension",
-                                 direction = "Input",
-                                 parameterType = "Required",
-                                 datatype = "GPString")
-        param4.filter.list = []
-
-        param5 = arcpy.Parameter(name="in_rapid_connect_file",
+        param3 = arcpy.Parameter(name="in_rapid_connect_file",
                                  displayName="Input RAPID Connect File",
                                  direction="Input",
                                  parameterType="Required",
                                  datatype="DEFile")
 
-        param6 = arcpy.Parameter(name = "in_catchment_features",
+        param4 = arcpy.Parameter(name = "in_catchment_features",
                                  displayName = "Input Catchment Features",
                                  direction = "Input",
                                  parameterType = "Required",
                                  datatype = "GPFeatureLayer")
 
-        param6.filter.list = ['Polygon']
+        param4.filter.list = ['Polygon']
 
-
-        param7 = arcpy.Parameter(name = "stream_ID",
+        param5 = arcpy.Parameter(name = "stream_ID",
                                  displayName = "Stream ID",
                                  direction = "Input",
                                  parameterType = "Required",
                                  datatype = "Field"
                                  )
-        param7.parameterDependencies = ["in_catchment_features"]
-        param7.filter.list = ['Short', 'Long']
+        param5.parameterDependencies = ["in_catchment_features"]
+        param5.filter.list = ['Short', 'Long']
 
 
-        param8 = arcpy.Parameter(name="out_weight_table",
+        param6 = arcpy.Parameter(name="out_weight_table",
                                  displayName="Output Weight Table",
                                  direction="Output",
                                  parameterType="Required",
                                  datatype="DEFile")
 
-        param9 = arcpy.Parameter(name = "out_cg_polygon_feature_class",
-                                 displayName = "Output Computational Grid Polygon Feature Class",
-                                 direction = "Output",
-                                 parameterType = "Optional",
-                                 datatype = "DEFeatureClass")
-
-        param10 = arcpy.Parameter(name = "out_cg_point_feature_class",
-                                 displayName = "Output Computational Grid Point Feature Class",
-                                 direction = "Output",
-                                 parameterType = "Optional",
-                                 datatype = "DEFeatureClass")
-
-
-        params = [param0, param1, param2, param3, param4, param5, 
-                  param6, param7, param8, param9, param10]
+        params = [param0, param1, param2, param3, param4, param5, param6]
 
         return params
 
@@ -174,16 +145,16 @@ class CreateWeightTableFromLISRunoff(object):
         """Modify the values and properties of parameters before internal
         validation is performed.  This method is called whenever a parameter
         has been changed."""
-        if parameters[8].valueAsText is None:
+        if parameters[6].valueAsText is None:
                 scratchWorkspace = arcpy.env.scratchWorkspace
                 if not scratchWorkspace:
                     scratchWorkspace = arcpy.env.scratchGDB
-                parameters[8].value = os.path.join(scratchWorkspace, "Weight_Table.csv")
+                parameters[6].value = os.path.join(scratchWorkspace, "Weight_Table.csv")
 
-        if parameters[8].altered:
-            (dirnm, basenm) = os.path.split(parameters[8].valueAsText)
+        if parameters[6].altered:
+            (dirnm, basenm) = os.path.split(parameters[6].valueAsText)
             if not basenm.endswith(".csv"):
-                parameters[8].value = os.path.join(dirnm, "{}.csv".format(basenm))
+                parameters[6].value = os.path.join(dirnm, "{}.csv".format(basenm))
 
         if parameters[0].altered:
             #get list of variables in the netcdf file
@@ -193,8 +164,6 @@ class CreateWeightTableFromLISRunoff(object):
             data_nc.close()
             parameters[1].filter.list = variables_list
             parameters[2].filter.list = variables_list
-            parameters[3].filter.list = dimensions_list
-            parameters[4].filter.list = dimensions_list
         
         return
 
@@ -210,9 +179,6 @@ class CreateWeightTableFromLISRunoff(object):
                 parameters[0].setErrorMessage(e.message)
         return
 
-    def find_nearest(self, array, value):
-        return (NUM.abs(array-value)).argmin()
-
     def execute(self, parameters, messages):
         """The source code of the tool."""
         arcpy.env.overwriteOutput = True
@@ -224,14 +190,10 @@ class CreateWeightTableFromLISRunoff(object):
         in_nc = parameters[0].valueAsText
         in_nc_lat_var = parameters[1].valueAsText
         in_nc_lon_var = parameters[2].valueAsText
-        in_nc_lat_dim = parameters[3].valueAsText
-        in_nc_lon_dim = parameters[4].valueAsText
-        in_rapid_connect_file = parameters[5].valueAsText
-        in_catchment = parameters[6].valueAsText
-        streamID = parameters[7].valueAsText
-        out_WeightTable = parameters[8].valueAsText
-        out_CGPolygon = parameters[9].valueAsText
-        out_CGPoint = parameters[10].valueAsText
+        in_rapid_connect_file = parameters[3].valueAsText
+        in_catchment = parameters[4].valueAsText
+        streamID = parameters[5].valueAsText
+        out_WeightTable = parameters[6].valueAsText
 
         # validate the netcdf dataset
         self.dataValidation(in_nc, messages)
@@ -247,62 +209,36 @@ class CreateWeightTableFromLISRunoff(object):
             result0 = arcpy.MinimumBoundingGeometry_management(in_catchment, envelope, 'ENVELOPE', 'ALL')
             envelope = result0.getOutput(0)
             sr_out = arcpy.SpatialReference(4326) # GCS_WGS_1984
-            #sr_out = arcpy.SpatialReference(54002)  # 'Cylindrical Equidistant Projection Grid'
             envelope_proj = os.path.join(scratchWorkspace,'envelope_proj')
             result1 = arcpy.Project_management(envelope, envelope_proj, sr_out)
             envelope_proj = result1.getOutput(0)
             extent = arcpy.Describe(envelope_proj).extent
 
-
         #Open nc file
-        """ 
-        LIS NC FILE
-        """
-
         data_nc = NET.Dataset(in_nc)
 
         # Obtain geographic coordinates
-        lon = NUM.sort(NUM.unique(NUM.concatenate(data_nc.variables[in_nc_lon_var][:]))) #assume [-180,180]
-        lat = NUM.sort(NUM.unique(NUM.concatenate(data_nc.variables[in_nc_lat_var][:]))) #assume [-90,90]
-        size_xdim = len(data_nc.dimensions[in_nc_lat_dim])
-        #remove missing lon values
-        if 'missing_value' in data_nc.variables[in_nc_lon_var].ncattrs():
-            lon = lon[lon!=data_nc.variables[in_nc_lon_var].getncattr('missing_value')]
-        if size_xdim != len(lon):
-            messages.addErrorMessage("Latitude dimension in data does not match netCDF file dimension")
-        size_ydim = len(data_nc.dimensions[in_nc_lon_dim])
-        #remove missing lat values
-        if 'missing_value' in data_nc.variables[in_nc_lat_var].ncattrs():
-            lat = lat[lat!=data_nc.variables[in_nc_lat_var].getncattr('missing_value')]
-        if size_ydim != len(lat):
-            messages.addErrorMessage("Latitude dimension in data does not match netCDF file dimension")
-
+        self.lsm_lon_array = data_nc.variables[in_nc_lon_var][:] #assume [-180, 180]
+        self.lsm_lat_array = data_nc.variables[in_nc_lat_var][:] #assume [-90,90]
         data_nc.close()
         
-        lon = NUM.float32(lon)
-        lat = NUM.float32(lat)
+        #convert 3d to 2d if time dimension
+        if(len( self.lsm_lon_array.shape) == 3):
+            self.lsm_lon_array = self.lsm_lon_array[0]
+            self.lsm_lat_array = self.lsm_lat_array[0]
 
         # Create Thiessen polygons based on the points within the extent
         arcpy.AddMessage("Generating Thiessen polygons...")
         polygon_thiessen = os.path.join(scratchWorkspace,'polygon_thiessen')
         
-        result4 = self.createPolygon(lat, lon, extent, polygon_thiessen, scratchWorkspace)
+        result4 = self.createPolygon(extent, polygon_thiessen, scratchWorkspace)
         polygon_thiessen = result4[1]
-
-
-        # Output Thiessen polygons (computational grid polygons) and CG points if they are specified.
-        if out_CGPolygon and out_CGPolygon != polygon_thiessen:
-            arcpy.CopyFeatures_management(polygon_thiessen, out_CGPolygon)
-        if out_CGPoint and out_CGPoint != result4[0]:
-            arcpy.CopyFeatures_management(result4[0], out_CGPoint)
-
 
         # Intersect the catchment polygons with the Thiessen polygons
         arcpy.AddMessage("Intersecting Thiessen polygons with catchment...")
         intersect = os.path.join(scratchWorkspace, 'intersect')
         result5 = arcpy.Intersect_analysis([in_catchment, polygon_thiessen], intersect, 'ALL', '#', 'INPUT')
         intersect = result5.getOutput(0)
-
 
         # Calculate the geodesic area in square meters for each intersected polygon (no need to project if it's not projected yet)
         arcpy.AddMessage("Calculating geodesic areas...")
@@ -320,27 +256,12 @@ class CreateWeightTableFromLISRunoff(object):
         #if point not in array append dummy data for one point of data
         lon_dummy = area_arr['POINT_X'][0]
         lat_dummy = area_arr['POINT_Y'][0]
-        try:
-            index_lon_dummy = int(NUM.where(lon == lon_dummy)[0])
-        except TypeError as ex:
-            #This happens when near meridian - lon_dummy ~ 0
-            #arcpy.AddMessage("GRIDID: %s" % streamID_unique)
-            #arcpy.AddMessage("Old Lon: %s" % lon_dummy)
-            index_lon_dummy = int(self.find_nearest(lon, lon_dummy))
-            #arcpy.AddMessage("Lon Index: %s" % index_lon_dummy)
-            #arcpy.AddMessage("Lon Val: %s" % lon[index_lon_dummy])
-            pass
-            
-        try:
-            index_lat_dummy= int(NUM.where(lat == lat_dummy)[0])
-        except TypeError as ex:
-            #This happens when near equator - lat_dummy ~ 0
-            #arcpy.AddMessage("GRIDID: %s" % streamID_unique)
-            #arcpy.AddMessage("Old Lat: %s" % lat_dummy)
-            index_lat_dummy = int(self.find_nearest(lat, lat_dummy))
-            #arcpy.AddMessage("Lat Index: %s" % index_lat_dummy)
-            #arcpy.AddMessage("Lat Val: %s" % lat[index_lat_dummy])
-            pass
+        #find point index in 2d grid
+        lsm_lat_indices_from_lat, lsm_lon_indices_from_lat = NUM.where(self.lsm_lat_array == lat_dummy)
+        lsm_lat_indices_from_lon, lsm_lon_indices_from_lon = NUM.where(self.lsm_lon_array == lon_dummy)
+
+        index_lat_dummy = NUM.intersect1d(lsm_lat_indices_from_lat, lsm_lat_indices_from_lon)[0]
+        index_lon_dummy = NUM.intersect1d(lsm_lon_indices_from_lat, lsm_lon_indices_from_lon)[0]
 
         with open(out_WeightTable, 'wb') as csvfile:
             connectwriter = csv.writer(csvfile, dialect = 'excel')
@@ -357,27 +278,15 @@ class CreateWeightTableFromLISRunoff(object):
                         area_geo_each = float(area_arr['AREA_GEO'][ind_point])
                         lon_each = area_arr['POINT_X'][ind_point]
                         lat_each = area_arr['POINT_Y'][ind_point]
-                        try:
-                            index_lon_each = int(NUM.where(lon == lon_each)[0])
-                        except TypeError as ex:
-                            #This happens when near meridian - lon_each ~ 0
-                            index_lon_each = int(self.find_nearest(lon, lon_each))
-                            #arcpy.AddMessage("GRIDID: %s" % streamID_unique)
-                            #arcpy.AddMessage("Old Lon: %s" % lon_each)
-                            #arcpy.AddMessage("Lon Index: %s" % index_lon_each)
-                            #arcpy.AddMessage("Lon Val: %s" % lon[index_lon_each])
-                            pass
-                            
-                        try:
-                            index_lat_each = int(NUM.where(lat == lat_each)[0])
-                        except TypeError as ex:
-                            #This happens when near equator - lat_each ~ 0
-                            index_lat_each = int(self.find_nearest(lat, lat_each))
-                            #arcpy.AddMessage("GRIDID: %s" % streamID_unique)
-                            #arcpy.AddMessage("Old Lat: %s" % lat_each)
-                            #arcpy.AddMessage("Lat Index: %s" % index_lat_each)
-                            #arcpy.AddMessage("Lat Val: %s" % lat[index_lat_each])
-                            pass
+                        
+                        #find point index in 2d grid
+                        lsm_lat_indices_from_lat, lsm_lon_indices_from_lat = NUM.where(self.lsm_lat_array == lat_each)
+                        lsm_lat_indices_from_lon, lsm_lon_indices_from_lon = NUM.where(self.lsm_lon_array == lon_each)
+
+                        index_lat_each = NUM.intersect1d(lsm_lat_indices_from_lat, lsm_lat_indices_from_lon)[0]
+                        index_lon_each = NUM.intersect1d(lsm_lon_indices_from_lat, lsm_lon_indices_from_lon)[0]
+
+                        #write to file
                         connectwriter.writerow([streamID_unique, area_geo_each, index_lon_each, 
                                                 index_lat_each, num_ind_points])
 
