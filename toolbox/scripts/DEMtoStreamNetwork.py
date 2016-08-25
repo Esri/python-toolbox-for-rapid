@@ -58,12 +58,14 @@ class DEMtoStreamNetwork(object):
                                             direction="Input",
                                             parameterType="Optional",
                                             datatype="GPBoolean")
+        Fill_Sinks_Option.value = False
 
         Buffer_Option = arcpy.Parameter(name="Buffer_Option",
                                         displayName="Add 20 kilometer Buffer",
                                         direction="Input",
                                         parameterType="Optional",
                                         datatype="GPBoolean")
+        Buffer_Option.value = False
                                                            
         #SET DEFAULT TO EQUIDISTAN PROJECTION BECAUSE WE USE IT TO GET LENGTH/SLOPE                                           
         Output_Coordinate_System.value = "PROJCS['World_Equidistant_Cylindrical',GEOGCS['GCS_WGS_1984'" \

@@ -79,7 +79,7 @@ class StreamNetworktoRAPID(object):
         Catchment_Features = arcpy.Parameter(name="Catchment_Features",
                                              displayName="Input Catchment Features",
                                              direction="Input",
-                                             parameterType="Required",
+                                             parameterType="Optional",
                                              datatype="GPFeatureLayer")
 
         Catchment_Features.filter.list = ['Polygon']
@@ -94,12 +94,12 @@ class StreamNetworktoRAPID(object):
         Stream_ID_Catchments.filter.list = ['Short', 'Long']
         Stream_ID_Catchments.value = "DrainLnID"
         
-        Input_Reservoir = arcpy.Parameter(name = 'Input_Reservoir',
+        Input_Reservoirs = arcpy.Parameter(name = 'Input_Reservoirs',
                                            displayName = 'Input Reservoir Layer',
                                            datatype = 'GPFeatureLayer',
                                            parameterType = 'Optional',
                                            direction = 'Input')
-        Input_Reservoir.filter.list = ['Polygon']
+        Input_Reservoirs.filter.list = ['Polygon']
 
         params = [rapid_out_folder,
                   input_Drainage_Lines, 
@@ -109,7 +109,7 @@ class StreamNetworktoRAPID(object):
                   Slope_field_DrainageLine,
                   Catchment_Features,
                   Stream_ID_Catchments,
-                  Input_Reservoir, 
+                  Input_Reservoirs, 
                   ]
 
         return params
@@ -196,34 +196,35 @@ class StreamNetworktoRAPID(object):
         # Process: Muskingum x  
         arcpy.CreateMuskingumXFile_RAPIDTools(rapid_out_folder, Drainage_Lines, Stream_ID_DrainageLine,"0.3", Input_Reservoirs)
 
-        lsm_grid_directory = os.path.join(script_directory, "lsm_grids")
-        
-        # Create ECMWF Low Res Weight Table
-        low_resolution_ecmwf_grid =  os.path.join(lsm_grid_directory, "runoff_ecmwf_tco639_grid.nc")
-        low_resolution_weight_table = os.path.join(rapid_out_folder, "weight_ecmwf_tco639.csv")        
-        arcpy.CreateWeightTableFromECMWFRunoff_RAPIDTools(low_resolution_ecmwf_grid,
-                                                          out_network_connectivity_file,
-                                                          Catchment_Features,
-                                                          Stream_ID_Catchments,
-                                                          low_resolution_weight_table) 
+        if Catchment_Features:
+            lsm_grid_directory = os.path.join(script_directory, "lsm_grids")
+            
+            # Create ECMWF Low Res Weight Table
+            low_resolution_ecmwf_grid =  os.path.join(lsm_grid_directory, "runoff_ecmwf_tco639_grid.nc")
+            low_resolution_weight_table = os.path.join(rapid_out_folder, "weight_ecmwf_tco639.csv")        
+            arcpy.CreateWeightTableFromECMWFRunoff_RAPIDTools(low_resolution_ecmwf_grid,
+                                                              out_network_connectivity_file,
+                                                              Catchment_Features,
+                                                              Stream_ID_Catchments,
+                                                              low_resolution_weight_table) 
 
-        # Create ECMWF High Res Weight Table
-        high_resolution_ecmwf_grid =  os.path.join(lsm_grid_directory, "runoff_ecmwf_t1279_grid.nc")
-        high_resolution_weight_table = os.path.join(rapid_out_folder, "weight_ecmwf_t1279.csv")        
-        arcpy.CreateWeightTableFromECMWFRunoff_RAPIDTools(high_resolution_ecmwf_grid,
-                                                          out_network_connectivity_file,
-                                                          Catchment_Features,
-                                                          Stream_ID_Catchments,
-                                                          high_resolution_weight_table) 
-        
-        # Create ERA Interim Weight Table
-        era_interim_ecmwf_grid =  os.path.join(lsm_grid_directory, "runoff_era_t511_grid.nc")
-        era_interim_weight_table = os.path.join(rapid_out_folder, "weight_era_t511.csv")        
-        arcpy.CreateWeightTableFromECMWFRunoff_RAPIDTools(era_interim_ecmwf_grid,
-                                                          out_network_connectivity_file,
-                                                          Catchment_Features,
-                                                          Stream_ID_Catchments,
-                                                          era_interim_weight_table) 
+            # Create ECMWF High Res Weight Table
+            high_resolution_ecmwf_grid =  os.path.join(lsm_grid_directory, "runoff_ecmwf_t1279_grid.nc")
+            high_resolution_weight_table = os.path.join(rapid_out_folder, "weight_ecmwf_t1279.csv")        
+            arcpy.CreateWeightTableFromECMWFRunoff_RAPIDTools(high_resolution_ecmwf_grid,
+                                                              out_network_connectivity_file,
+                                                              Catchment_Features,
+                                                              Stream_ID_Catchments,
+                                                              high_resolution_weight_table) 
+            
+            # Create ERA Interim Weight Table
+            era_interim_ecmwf_grid =  os.path.join(lsm_grid_directory, "runoff_era_t511_grid.nc")
+            era_interim_weight_table = os.path.join(rapid_out_folder, "weight_era_t511.csv")        
+            arcpy.CreateWeightTableFromECMWFRunoff_RAPIDTools(era_interim_ecmwf_grid,
+                                                              out_network_connectivity_file,
+                                                              Catchment_Features,
+                                                              Stream_ID_Catchments,
+                                                              era_interim_weight_table) 
 
         # Flowline to point
         out_point_file =  os.path.join(rapid_out_folder, "comid_lat_lon_z.csv")

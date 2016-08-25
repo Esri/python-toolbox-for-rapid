@@ -58,7 +58,8 @@ class AutomaticRAPIDfileGenerator(object):
                                         displayName="Add 20 Kilometer Buffer",
                                         direction="Input",
                                         parameterType="Optional",
-                                        datatype="GPBoolean")                                                           
+                                        datatype="GPBoolean")
+        Buffer_Option.value = False                
                                                            
         Input_Reservoir = arcpy.Parameter(name = 'Input_Reservoir',
                                            displayName = 'Input Reservoir Layer',
