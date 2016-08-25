@@ -210,7 +210,7 @@ class AutomaticRAPIDfileGenerator(object):
 
                 #generate RAPID files
                 RAPIDregionfolder = arcpy.CreateFolder_management(regionfolder, "RAPID_Files")
-                arcpy.StreamNetworktoRAPID_RAPIDTools(RAPIDregionfolder, Output_DrainageLine, "HydroID", "NextDownID", "SLength", 
+                arcpy.StreamNetworktoRAPID_RAPIDTools(RAPIDregionfolder, Output_DrainageLine, "HydroID", "NextDownID", "LENGTHKM", 
                                                       "Avg_Slope", Output_Catchment, "DrainLnID", Input_Reservoir) 
                 
                 #Generate SPT files
