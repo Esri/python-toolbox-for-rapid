@@ -14,6 +14,8 @@ from CreateNetworkConnectivityFileNHDPlus import CreateNetworkConnectivityFileNH
 from CreateMuskingumParameterFiles import CreateMuskingumParameterFiles
 from CreateMuskingumKFile import CreateMuskingumKFile
 from CreateMuskingumKfacFile import CreateMuskingumKfacFile
+from CreateMuskingumXField import CreateMuskingumXField
+from CreateMuskingumXFile import CreateMuskingumXFile
 from CreateRivIDGageFile import CreateRivIDGageFile
 from CreateSubsetFile import CreateSubsetFile
 from CreateWeightTableFromWRFGeogrid import CreateWeightTableFromWRFGeogrid
@@ -26,7 +28,6 @@ from CreateDischargeTable import CreateDischargeTable
 from CreateDischargeMap import CreateDischargeMap
 from FlowlineToPoint import FlowlineToPoint
 from DEMtoStreamNetwork import DEMtoStreamNetwork
-from CreateMuskingumXFile import CreateMuskingumXFile
 from PublishDischargeMap import PublishDischargeMap
 from StreamNetworktoRAPID import StreamNetworktoRAPID
 from StreamNetworktoSPT import StreamNetworktoSPT
@@ -49,6 +50,7 @@ class Toolbox(object):
                       CreateMuskingumParameterFiles,
                       CreateMuskingumKFile,
                       CreateMuskingumKfacFile,
+                      CreateMuskingumXField, 
                       CreateMuskingumXFile, 
                       CreateRivIDGageFile, 
                       CreateSubsetFile,
