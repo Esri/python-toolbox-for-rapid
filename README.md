@@ -27,7 +27,34 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 
 The tools are organized into four toolsets. One for preprocessing and preparing the input datasets for RAPID. The second is for generating calibrated values for the Muksingum Paremeters. The third is for doing some postprocessing especially for visualizing the RAPID output of stream flow. The fourth toolset has some utilities to assist you with the workflow and sharing the visualization as web map service.
 
-### Preprocessing tools
+### Calibration Tools
+
+* #### Create Muksingum Kfac File
+
+  This tool is used to generate values of Kfac based on the flow wave celerity (Co) for the basin as well as length and slope of each stream reach.
+  
+  There are three options:
+
+  1. River Length/Co
+  2. Eta*River Length/Sqrt(River Slope)
+  3. Eta*River Length/Sqrt(River Slope) [0.05, 0.95] - this option filters out slopes outside the 5th and 95th percentiles.
+
+  Note: Eta = Average(River Length/Co of all rivers) / Average(River Length/Sqrt(River Slope) of all rivers)
+
+* #### Create Muksingum K File
+
+  Using lambda, this tool modifies each of the Kfac values by multiplying by lambda and generates the calibrated Muskgingum K file (e.g. k.csv). 
+  The value for lambda is obtained by running the calibration routine in RAPID for your simulation. 
+
+* #### Create Muksingum X Field
+
+  This tool adds or updates the Musk_x field to the drainage line and sets the value to the input provided by the user (Default is 0.3). If a shapefile with reservoirs is given, then it will set the value to "0" where it intersects the drainage line. 
+
+* #### Create Muksingum X File
+
+  This tool generates the Muskingum X file based on the Musk_x field in the drainage lines. 
+
+### Preprocessing Tools
 
 * #### Create Connectivity File
 
@@ -93,26 +120,7 @@ The tools are organized into four toolsets. One for preprocessing and preparing 
   4. If a stream ID does not have a corresponding record in the weight table, specifies its runoff as 0.
   5. Writes the runoff data into the inflow file in netCDF format.
 
-### Calibration tools
-
-* #### Create Muksingum Kfac File
-
-  This tool is used to generate values of Kfac based on the flow wave celerity (Co) for the basin as well as length and slope of each stream reach.
-  
-  There are three options:
-
-  1. River Length/Co
-  2. Eta*River Length/Sqrt(River Slope)
-  3. Eta*River Length/Sqrt(River Slope) [0.05, 0.95] - this option filters out slopes outside the 5th and 95th percentiles.
-
-  Note: Eta = Average(River Length/Co of all rivers) / Average(River Length/Sqrt(River Slope) of all rivers)
-
-* #### Create Muksingum K File
-
-  Using lambda, this tool modifies each of the Kfac values by multiplying by lambda and generates the calibrated Muskgingum K file (e.g. k.csv). 
-  The value for lambda is obtained by running the calibration routine in RAPID for your simulation. 
-
-### Postprocessing tools
+### Postprocessing Tools
 
 * #### Create Discharge Table
 
@@ -155,6 +163,45 @@ The tools are organized into four toolsets. One for preprocessing and preparing 
 
   This tool publishes a discharge map service of stream flow visualization to an ArcGIS server.
 
+### Workflow Tools
+
+* #### DEM to Stream Network
+
+  This tool creates the stream network reqired for RAPID input from the DEM(s) provided using ArcHydro Tools. 
+
+* #### Stream Network to RAPID
+  
+  This tool creates the required RAPID input files automatically using the defaults provided by the tools. These files include:
+  
+  1. The connectivity file.
+  2. The subset file.
+  3. The Muskingum K & Kfac files.
+  4. The Muskingum X file.
+  5. The comid_lat_lon_z file.
+  
+  There is an option to add the catchments for the stream network. If added, it will also generate:
+  
+  1. The High-Resolution ECMWF forecast weight table.
+  2. The Low-Resolution ECMWF forecast weight table.
+  3. The ERA Interim weight table.
+  
+* #### Stream Network to SPT
+
+  This tool will run the "Add Streamflow Prediction Tool Fields" tool and generate the shapefiles needed for the Streamflow Prediction Tool web application (https://github.com/erdc-cm/tethysapp-streamflow_prediction_tool).
+  
+* #### Automatic RAPID File Generator
+
+  This tool requires the HydroSHEDS 3 arc-second hydrologically conditioned .bil DEM data (www.hydrosheds.org). 
+  It also requires the HydroBASINS (www.hydrosheds.org) level 3 boundaries with the associated 
+  "RegionName" field added manually with a descriptive region name for each region.
+  With all of the .bil DEM files in one folder, it will determine the DEM(s) required for the watershed and 
+  run automatically:
+  
+  1. DEM to Stream Network
+  2. Stream Network to RAPID
+  3. Stream Network to SPT
+  
+  
 ## Licensing
 Copyright 2016 Esri
 
