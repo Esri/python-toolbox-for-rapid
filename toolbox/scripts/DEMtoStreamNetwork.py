@@ -251,22 +251,22 @@ class DEMtoStreamNetwork(object):
         arcpy.AddSurfaceInformation_3d(Output_Projected_DrainageLine,Output_Elevation_DEM, "SURFACE_LENGTH;AVG_SLOPE")
 
         #add field
-        arcpy.AddField_management(Output_Projected_DrainageLine, "LENGTHKM", "FLOAT", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")        
+        arcpy.AddField_management(Output_Projected_DrainageLine, "LENGTHKM", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")        
         
         cursor = arcpy.UpdateCursor(Output_Projected_DrainageLine, ["SLength", "LENGTHKM"])  
         for row in cursor:  
-            SLength = row.getValue("SLength")
-            LENGTHKM = SLength/1000.0
-            row.setValue("LENGTHKM", LENGTHKM)
+            row.setValue("LENGTHKM", row.getValue("SLength")/1000.0)
             cursor.updateRow(row)
         
+        #replace drainage line with final drainage line
+        arcpy.Delete_management(Output_DrainageLine)
+        arcpy.Project_management(Output_Projected_DrainageLine, Output_DrainageLine, Coordinate_System)
+        arcpy.Delete_management(Output_Projected_DrainageLine)
+
         #CLEANUP
         arcpy.Delete_management(Output_Str_Raster)
         arcpy.Delete_management(Output_Cat)
         arcpy.Delete_management(Output_StrLnk_Raster)
-        arcpy.Delete_management(Output_DrainageLine)
-        arcpy.Project_management(Output_Projected_DrainageLine, Output_DrainageLine, Coordinate_System)
-        arcpy.Delete_management(Output_Projected_DrainageLine)
         if Watershed_Buffer != Watershed_Boundary:
             arcpy.Delete_management(Watershed_Buffer)
         return(Output_DrainageLine, Output_Catchment)

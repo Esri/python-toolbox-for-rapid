@@ -63,7 +63,7 @@ class StreamNetworktoRAPID(object):
                                                     datatype="Field")
                                                  
         length_field_DrainageLine.parameterDependencies = ["input_Drainage_Lines"]
-        length_field_DrainageLine.filter.list = ['Double']
+        length_field_DrainageLine.filter.list = ['Float', 'Double']
         length_field_DrainageLine.value = "LENGTHKM"
 
         Slope_field_DrainageLine = arcpy.Parameter(name="Slope_field_DrainageLine",
@@ -73,7 +73,7 @@ class StreamNetworktoRAPID(object):
                                                    datatype="Field")
                                                  
         Slope_field_DrainageLine.parameterDependencies = ["input_Drainage_Lines"]
-        Slope_field_DrainageLine.filter.list = ['Double']
+        Slope_field_DrainageLine.filter.list = ['Float', 'Double']
         Slope_field_DrainageLine.value = "Avg_Slope"
 
         Catchment_Features = arcpy.Parameter(name="Catchment_Features",
