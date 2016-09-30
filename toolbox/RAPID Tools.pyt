@@ -6,43 +6,68 @@ sys.path.append(scripts_dir)
 # Do not compile .pyc files for the tool modules.
 sys.dont_write_bytecode = True
 
+from AddSPTFields import AddSPTFields
+from AutomaticRAPIDfileGenerator import AutomaticRAPIDfileGenerator
+from CopyDataToServer import CopyDataToServer
 from CreateNetworkConnectivityFile import CreateNetworkConnectivityFile
+from CreateNetworkConnectivityFileNHDPlus import CreateNetworkConnectivityFileNHDPlus
 from CreateMuskingumParameterFiles import CreateMuskingumParameterFiles
+from CreateMuskingumKFile import CreateMuskingumKFile
+from CreateMuskingumKfacFile import CreateMuskingumKfacFile
+from CreateMuskingumXField import CreateMuskingumXField
+from CreateMuskingumXFile import CreateMuskingumXFile
+from CreateRivIDGageFile import CreateRivIDGageFile
 from CreateSubsetFile import CreateSubsetFile
 from CreateWeightTableFromWRFGeogrid import CreateWeightTableFromWRFGeogrid
 from CreateInflowFileFromWRFHydroRunoff import CreateInflowFileFromWRFHydroRunoff
 from CreateWeightTableFromECMWFRunoff import CreateWeightTableFromECMWFRunoff
 from CreateInflowFileFromECMWFRunoff import CreateInflowFileFromECMWFRunoff
-from UpdateWeightTable import UpdateWeightTable
+from CreateWeightTableFromLDASRunoff import CreateWeightTableFromLDASRunoff
+from CreateWeightTableFrom2DLatLonRunoff import CreateWeightTableFrom2DLatLonRunoff
 from CreateDischargeTable import CreateDischargeTable
 from CreateDischargeMap import CreateDischargeMap
-from CopyDataToServer import CopyDataToServer
-from UpdateDischargeMap import UpdateDischargeMap
-from PublishDischargeMap import PublishDischargeMap
 from FlowlineToPoint import FlowlineToPoint
-
-
+from DEMtoStreamNetwork import DEMtoStreamNetwork
+from PublishDischargeMap import PublishDischargeMap
+from StreamNetworktoRAPID import StreamNetworktoRAPID
+from StreamNetworktoSPT import StreamNetworktoSPT
+from UpdateWeightTable import UpdateWeightTable
+from UpdateDischargeMap import UpdateDischargeMap
 
 class Toolbox(object):
     def __init__(self):
         """Define the toolbox (the name of the toolbox is the name of the
         .pyt file)."""
-        self.label = "RAPIDTools"
-        self.alias = "RAPID Tools"
+        self.label = "RAPID Tools"
+        self.alias = "RAPIDTools"
 
         # List of tool classes associated with this toolbox
-        self.tools = [CreateNetworkConnectivityFile,
- 		      CreateMuskingumParameterFiles,
-		      CreateSubsetFile,
-              CreateWeightTableFromWRFGeogrid,
-              CreateInflowFileFromWRFHydroRunoff,
-              CreateWeightTableFromECMWFRunoff,
-              CreateInflowFileFromECMWFRunoff,
-              UpdateWeightTable,
-              CreateDischargeTable,
-              CreateDischargeMap,
-              CopyDataToServer,
-              UpdateDischargeMap,
-              PublishDischargeMap,
-              FlowlineToPoint]
+        self.tools = [AddSPTFields,
+                      AutomaticRAPIDfileGenerator, 
+                      CopyDataToServer,
+                      CreateNetworkConnectivityFile,
+                      CreateNetworkConnectivityFileNHDPlus,
+                      CreateMuskingumParameterFiles,
+                      CreateMuskingumKFile,
+                      CreateMuskingumKfacFile,
+                      CreateMuskingumXField, 
+                      CreateMuskingumXFile, 
+                      CreateRivIDGageFile, 
+                      CreateSubsetFile,
+                      CreateWeightTableFromWRFGeogrid,
+                      CreateInflowFileFromWRFHydroRunoff,
+                      CreateWeightTableFromECMWFRunoff,
+                      CreateInflowFileFromECMWFRunoff,
+                      CreateWeightTableFromLDASRunoff,
+                      CreateWeightTableFrom2DLatLonRunoff,
+                      CreateDischargeTable,
+                      CreateDischargeMap,
+                      FlowlineToPoint,
+                      DEMtoStreamNetwork,
+                      PublishDischargeMap,
+                      StreamNetworktoRAPID,
+                      StreamNetworktoSPT,
+                      UpdateWeightTable,
+                      UpdateDischargeMap,
+                      ]
 
