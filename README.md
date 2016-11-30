@@ -12,7 +12,7 @@ This repository houses a Python toolbox of tools for preprocessing inputs and po
 
 * In order to use the Preprocessing tools, you will need to have the following inputs available:
 
-   * Drainage Line and Catchment feature classes for the watersheds of interests. To learn about how to create them, please refer to the workflow of Basic Dendritic Terrain Processing with [ArcHydro](http://resources.arcgis.com/en/communities/hydro/01vn0000000s000000.htm) tools.
+   * Drainage Line and Catchment feature classes for the watersheds of interests. To learn about how to create them, please refer to the workflow of Basic Dendritic Terrain Processing with [ArcHydro](https://geonet.esri.com/thread/105831) tools.
    * For [WRF-Hydro](https://www.ral.ucar.edu/projects/wrf_hydro), you will need both its geogrid file and runoff file; for [ECMWF](http://www.ecmwf.int/), you will need only the runoff file.
 
 ## Issues
