@@ -5,7 +5,7 @@ This repository houses a Python toolbox of tools for preprocessing inputs and po
 ## Getting Started
 
 * Ensure you have [ArcGIS for Desktop](http://desktop.arcgis.com/en/arcmap/) installed. 
-* If your version of ArcGIS for Desktop is previous to 10.2, you must install the [netCDF4 Python package] (https://pypi.python.org/pypi/netCDF4). An executable for installing netCDF4-1.0.8 with Python 2.7 is available [here] (http://downloads.esri.com/archydro/archydro/Setup/10.2.x/rapid/).
+* If your version of ArcGIS for Desktop is previous to 10.3, you must install the [netCDF4 Python package] (https://pypi.python.org/pypi/netCDF4). An executable for installing netCDF4-1.0.8 with Python 2.7 is available [here] (http://downloads.esri.com/archydro/archydro/Setup/10.2.x/rapid/).
 * Download the toolbox and place it in an appropriate folder on your machine. Navigate to the folder in Catalog. If you expand all the toolsets, you will see the following: 
 
 ![alt tag](/toolbox_screenshot.png)
