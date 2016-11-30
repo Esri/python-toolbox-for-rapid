@@ -43,11 +43,11 @@ The tools are organized into three toolsets. One for preprocessing and preparing
 
 * #### Create Muskingum Parameters File
 
-  This tool writes the values of the Muskingum parameter fields (Musk_kfac, Musk_k, and Musk_x) into individual parameter files. The    three fields can be calculated using the Calculate Muskingum Parameters tool in the [ArcHydro toolbox](http://resources.arcgis.com/en/communities/hydro/01vn0000000s000000.htm). The records in all files are sorted in the ascending order based on the stream HydroID.
+  This tool writes the values of the Muskingum parameter fields (Musk_kfac, Musk_k, and Musk_x) into individual parameter files. The    three fields can be calculated using the Calculate Muskingum Parameters tool in the [ArcHydro toolbox](https://geonet.esri.com/thread/105831). The records in all files are sorted in the ascending order based on the stream HydroID.
 
 * #### Create Weight Table From ECMWF/WRF-Hydro Runoff
 
-  This tool creates a table that represents the runoff contribution of the ECMWF/WRF-Hydro computational grid to the catchment. It requires that the input Catchment feature class has a drainage line ID field that corresponds to the HydroID of the Drainage Line feature class. If your input Catchment feature class does not have that field, you can use the Add DrainLnID to Catchment tool in the [ArcHydro toolbox](http://resources.arcgis.com/en/communities/hydro/01vn0000000s000000.htm). This tool does the following:
+  This tool creates a table that represents the runoff contribution of the ECMWF/WRF-Hydro computational grid to the catchment. It requires that the input Catchment feature class has a drainage line ID field that corresponds to the HydroID of the Drainage Line feature class. If your input Catchment feature class does not have that field, you can use the Add DrainLnID to Catchment tool in the [ArcHydro toolbox](https://geonet.esri.com/thread/105831). This tool does the following:
 
   For ECMWF,
 
